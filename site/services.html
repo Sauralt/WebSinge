@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+	<link rel="stylesheet" href="assets/index.css">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>websinge</title>
+</head>
+<body>
+	<header>
+		<a href="index.html">HOME</a>
+		<a href="about.html">About</a>
+		<a href="contact.html">Contact</a>
+		<a href="services.html">Services</a>
+		<a href="accounts.html">Account</a>
+	</header>
+
+	<main>
+  		<h1>Services</h1>
+		<h2>Calculatrice :</h2>
+  		<form action="../cgi/test.py" method="get">
+			<label class="calculatrice" for="first_name">nombre1</label> <br />
+			<input class="number" type = "number" name = "number1">
+			<label class="calculatrice" for="last_name">operateur</label> <br /> 
+			<input class="number" type = "text" name = "last_name">
+			<label class="calculatrice" for="email">nombre2</label> <br /> 
+			<input class="number" type = "number" name = "number2"> 
+			
+			<input class="number" type = "submit" value = "Calculer" /> <br />
+		</form>
+
+  		<h2>Uploader un fichier :</h2>
+		<form action="../cgi/upload.py" method="post" enctype="multipart/form-data">
+    		<input type="file" name="fichier">
+   			<button type="submit">Envoyer</button>
+		</form>
+	</main>
+
+	<footer style="text-align:center; margin-top:2rem; color:#ffffff; font-size:.9rem;">© <span id="annee"></span> by MGARSAUL & CFLEURET</footer>
+
+	<script>
+		document.getElementById('annee').textContent = new Date().getFullYear();
+	</script>
+</body>
+
+
+
+</html>

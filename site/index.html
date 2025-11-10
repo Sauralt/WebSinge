@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+	<link rel="stylesheet" href="assets/index.css">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>websinge</title>
+</head>
+<body>
+	<header>
+		<a href="index.html">HOME</a>
+		<a href="about.html">About</a>
+		<a href="contact.html">Contact</a>
+		<a href="services.html">Services</a>
+		<a href="accounts.html">Account</a>
+	</header>
+
+	<main>
+		<h1>Bienvenue dans le monde des singes</h1>
+		<div class="card">
+			<h2>Voici au programme de notre site web</h2>
+			<ul>
+			<li>De la bonne humeur</li>
+			<li>De la singerie</li>
+			<li>Nos contacts</li>
+			<li>Gerer votre compte</li>
+			<li>uploader des fichiers</li>
+			<li>Une calculatrice basique</li>
+			</ul>
+		</div>
+		<a class="button" href="#" onclick="alert('ouais c est le fils de greg'); return false;">Surprise...</a>
+	</main>
+
+	<footer style="text-align:center; margin-top:2rem; color:#ffffff; font-size:.9rem;">© <span id="annee"></span> by MGARSAUL & CFLEURET</footer>
+
+	<script>
+		document.getElementById('annee').textContent = new Date().getFullYear();
+	</script>
+</body>
+</html>
