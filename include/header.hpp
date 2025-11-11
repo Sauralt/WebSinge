@@ -5,6 +5,7 @@
 # include <cstdlib>
 # include <iostream>
 # include <unistd.h>
-
+# include <poll.h>
+# include <vector>
 
 #endif
