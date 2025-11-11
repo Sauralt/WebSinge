@@ -1,6 +1,6 @@
 C++ = c++
 C++_FLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
-INFILES = 	main.cpp\
+INFILES =	main.cpp\
 
 OBJFILES = $(INFILES:.cpp=.o)
 
@@ -9,7 +9,7 @@ NAME = webserv
 all: $(NAME)
 
 $(NAME):$(OBJFILES)
-	$(C++) $(C++_FLAGS) $(OBJFILES) -o $(NAME) 
+	$(C++) $(C++_FLAGS) $(OBJFILES) -o $(NAME)
 
 %.o: %.cpp
 	$(C++) $(C++_FLAGS) -c $< -o $@
