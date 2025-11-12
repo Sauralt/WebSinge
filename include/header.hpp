@@ -7,5 +7,7 @@
 # include <unistd.h>
 # include <poll.h>
 # include <vector>
+# include <csignal>
+# include <fstream>
 
 #endif

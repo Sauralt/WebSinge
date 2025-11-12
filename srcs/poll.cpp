@@ -17,6 +17,11 @@ polling&	polling::operator=(polling& copy)
 	return *this;
 }
 
+void	signal_handler(int sig)
+{
+	gSignalStatus = sig;
+}
+
 int	polling::socketfd()
 {
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,7 +42,7 @@ int	polling::socketfd()
 
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0)
 	{
-		std::cerr << "Failed to bind to port 9999." << std::endl;
+		std::cerr << "Failed to bind to port 8080." << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -81,9 +86,10 @@ int	polling::send_socket(int i)
 	}
 	else
 	{
+		std::ifstream file("../site/index.html");
 		buffer[bytesRead] = '\0';
 		std::cout << "message = " << buffer << "\n";
-		std::string response = "End\n";
+		std::string response = file;
 		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
 	}
 	return i;
@@ -91,6 +97,8 @@ int	polling::send_socket(int i)
 
 void	polling::pollrequest()
 {
+	gSignalStatus = 0;
+	std::signal(SIGINT, signal_handler);
 	int	sockfd = socketfd();
 	std::vector<pollfd> pollrequest;
 	pollfd firstpoll;
@@ -98,7 +106,7 @@ void	polling::pollrequest()
 	firstpoll.events = POLLIN;
 	this->_pollrequest.push_back(firstpoll);
 
-	while (true)
+	while (gSignalStatus == 0)
 	{
 		poll(this->_pollrequest.data(), this->_pollrequest.size(), -1);
 

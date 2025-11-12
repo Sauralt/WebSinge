@@ -1,6 +1,8 @@
 #include "../include/header.hpp"
 #include "../include/poll.hpp"
 
+int gSignalStatus;
+
 int	main(int argc, char** argv)
 {
 	if (argc > 2)
