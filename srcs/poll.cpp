@@ -1,11 +1,28 @@
-#include "include/header.hpp"
+#include "../include/poll.hpp"
 
-int	main()
+polling::polling()
+{}
+
+polling::~polling()
+{}
+
+polling::polling(polling& copy)
+{
+	this->_pollrequest = copy._pollrequest;
+}
+
+polling&	polling::operator=(polling& copy)
+{
+	this->_pollrequest = copy._pollrequest;
+	return *this;
+}
+
+int	polling::socketfd()
 {
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1)
 	{
-		std::cout << "Failed to create socket. errno: " << errno << std::endl;
+		std::cout << "Failed to create socket." << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -20,70 +37,80 @@ int	main()
 
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0)
 	{
-		std::cerr << "Failed to bind to port 9999. errno: " << errno << std::endl;
+		std::cerr << "Failed to bind to port 9999." << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	if (listen(sockfd, 10) < 0)
 	{
-		std::cerr << "Failed to listen on socket. errno: " << errno << std::endl;
+		std::cerr << "Failed to listen on socket." << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	return sockfd;
+}
 
+void	polling::add_socket(int sockfd)
+{
+	sockaddr_in client;
+	socklen_t addrlen = sizeof(client);
+	int connection = accept(sockfd, (struct sockaddr*)&client, (socklen_t*)&addrlen);
+	if (connection < 0)
+	{
+		std::cerr << "Failed to grab connection." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		pollfd newfd;
+		newfd.fd = connection;
+		newfd.events = POLLIN;
+		newfd.revents = 0;
+		this->_pollrequest.push_back(newfd);
+	}
+}
 
+int	polling::send_socket(int i)
+{
+	char buffer[101];
+	ssize_t bytesRead = recv(this->_pollrequest[i].fd, buffer, 100, 0);
+	if (bytesRead <= 0)
+	{
+			close(this->_pollrequest[i].fd);
+			this->_pollrequest.erase(this->_pollrequest.begin() + i);
+			i--;
+	}
+	else
+	{
+		buffer[bytesRead] = '\0';
+		std::cout << "message = " << buffer << "\n";
+		std::string response = "End\n";
+		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
+	}
+	return i;
+}
+
+void	polling::pollrequest()
+{
+	int	sockfd = socketfd();
 	std::vector<pollfd> pollrequest;
 	pollfd firstpoll;
 	firstpoll.fd = sockfd;
 	firstpoll.events = POLLIN;
-	pollrequest.push_back(firstpoll);
+	this->_pollrequest.push_back(firstpoll);
 
 	while (true)
 	{
-		int nready = poll(pollrequest.data(), pollrequest.size(), -1);
+		poll(this->_pollrequest.data(), this->_pollrequest.size(), -1);
 
-		for (size_t i = 0; i < pollrequest.size(); ++i)
+		for (size_t i = 0; i < this->_pollrequest.size(); ++i)
 		{
-			if (pollrequest[i].revents & POLLIN)
+			if (this->_pollrequest[i].revents & POLLIN)
 			{
-				if (pollrequest[i].fd == sockfd)
-				{
-						sockaddr_in client;
-						socklen_t addrlen = sizeof(client);
-						int connection = accept(sockfd, (struct sockaddr*)&client, (socklen_t*)&addrlen);
-						if (connection < 0)
-						{
-							std::cerr << "Failed to grab connection. errno: " << errno << std::endl;
-							exit(EXIT_FAILURE);
-						}
-						else
-						{
-							pollfd newfd;
-							newfd.fd = connection;
-							newfd.events = POLLIN;
-							newfd.revents = 0;
-							pollrequest.push_back(newfd);
-						}
-				}
+				if (this->_pollrequest[i].fd == sockfd)
+					add_socket(sockfd);
 				else
-				{
-					char buffer[101];
-					ssize_t bytesRead = recv(pollrequest[i].fd, buffer, 100, 0);
-					if (bytesRead <= 0)
-					{
-							close(pollrequest[i].fd);
-							pollrequest.erase(pollrequest.begin() + i);
-							i--;
-					}
-					else
-					{
-						buffer[bytesRead] = '\0';
-						std::cout << "message = " << buffer;
-						std::string response = "End";
-						send(pollrequest[i].fd, response.c_str(), response.size(), 0);
-					}
-				}
+					i = send_socket(i);
 			}
 		}
 	}
-	return 0;
 }
