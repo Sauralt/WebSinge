@@ -3,50 +3,38 @@
 #include <iostream>
 #include <cstdlib>
 
-// Déclaration externe de la fonction serveur
-// (implémentée dans src/http_server.cpp)
-extern void runServer(int port, const Config &config);
+extern void runServer(const Server &srv);
 
 int main(int argc, char **argv)
 {
-	(void)argc;
-    (void)argv;
-    std::cout << "====================================" << std::endl;
-    std::cout << "        Mini WebServ (C++98)        " << std::endl;
-    std::cout << "====================================" << std::endl;
-
-    // --- Charger la configuration ---
     Config config;
-    std::string conf_file = "config/Singe.conf";
+
+    std::string conf_file = (argc == 1 ? "config/Singe.conf" : argv[1]);
+    std::cout << "Using config file: " << conf_file << std::endl;
+
     if (!parseConfigFile(conf_file, config))
     {
         std::cerr << "Erreur: impossible de charger le fichier de config: " << conf_file << std::endl;
         return 1;
     }
-
-    if (config.servers.empty())
+    if (config.getServers().empty())
     {
         std::cerr << "Erreur: aucun serveur défini dans la configuration." << std::endl;
         return 1;
     }
+    const Server &srv = config.getServers()[0];
+    int port = srv.getPort();
+    std::cout << "Server: " << srv.getServerName()
+              << " listening on port " << port << std::endl;
 
-    // Pour l’instant, on prend le premier serveur de la config
-    Server &srv = config.servers[0];
-    int port = srv.port;
-    std::cout << "Server: " << srv.server_name << " listening on port " << port << std::endl;
-    std::cout << "Root directory: " << srv.root << std::endl;
-
-    // --- Vérification port valide ---
+    std::cout << "Root directory: " << srv.getRoot() << std::endl;
     if (port <= 0 || port > 65535)
     {
         std::cerr << "Port invalide: " << port << std::endl;
         return 1;
     }
-
-    // --- Lancer le serveur ---
     std::cout << "Server starting..." << std::endl;
-    runServer(port, config);
-
+    runServer(srv);
     return 0;
 }
 

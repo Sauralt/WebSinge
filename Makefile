@@ -5,6 +5,7 @@ INFILES = 	src/main.cpp \
 			src/ServerConfig.cpp \
 			src/HttpRouter.cpp \
 			src/GlobalConfig.cpp \
+			src/Utils.cpp \
 
 OBJFILES = $(INFILES:.cpp=.o)
 

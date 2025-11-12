@@ -1,116 +1,101 @@
 #include "../include/GlobalConfig.hpp"
 #include <fstream>
-#include <sstream>
 #include <iostream>
-#include <algorithm>
+#include <sstream>
 #include <cstdlib>
+#include <algorithm>
+#include <cctype>
+#include <functional>
 
-// --- trim début/fin ---
 static void trim(std::string &s)
 {
-    s.erase(0, s.find_first_not_of(" \t\r\n"));
-    s.erase(s.find_last_not_of(" \t\r\n") + 1);
-}
-
-// --- remove trailing ';' ---
-static void removeSemicolon(std::string &s)
-{
-    trim(s);
-    if (!s.empty() && s[s.size() - 1] == ';')
-        s.erase(s.size() - 1);
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+                                    std::not1(std::ptr_fun<int, int>(std::isspace))));
+    s.erase(std::find_if(s.rbegin(), s.rend(),
+                         std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
+            s.end());
 }
 
 bool parseConfigFile(const std::string &filename, Config &config)
 {
-    std::ifstream f(filename.c_str());
-    if (!f)
+    std::ifstream file(filename.c_str());
+    if (!file.is_open())
+    {
+        std::cerr << "Erreur: impossible d'ouvrir le fichier " << filename << std::endl;
         return false;
+    }
 
-    std::string line;
     Server current_server;
     Location current_location;
-    bool in_server = false;
-    bool in_location = false;
+    bool in_server = false, in_location = false;
 
-    while (std::getline(f, line))
+    std::string line;
+    while (std::getline(file, line))
     {
         trim(line);
-        if (line.empty() || line[0] == '#')
-            continue;
+        if (line.empty() || line[0] == '#') continue;
 
-        if (line.find("server {") == 0)
+        // Début serveur
+        if (line == "server {")
         {
-            in_server = true;
             current_server = Server();
+            in_server = true;
             continue;
         }
-        else if (line.find("}") == 0)
+
+        // Fin bloc
+        if (line == "}")
         {
             if (in_location)
             {
-                current_server.locations.push_back(current_location);
+                current_server.addLocation(current_location);
                 in_location = false;
             }
             else if (in_server)
             {
-                config.servers.push_back(current_server);
+                config.addServer(current_server);
                 in_server = false;
             }
             continue;
         }
 
-        if (in_server)
+        // Début location
+        if (line.find("location") == 0)
         {
-            if (line.find("listen") == 0)
-            {
-                std::string val = line.substr(6);
-                trim(val);
-                removeSemicolon(val);
-                current_server.port = std::atoi(val.c_str());
-            }
-            else if (line.find("server_name") == 0)
-            {
-                std::string val = line.substr(11);
-                trim(val);
-                removeSemicolon(val);
-                current_server.server_name = val;
-            }
-            else if (line.find("root") == 0)
-            {
-                std::string val = line.substr(4);
-                trim(val);
-                removeSemicolon(val);
-                current_server.root = val;
-            }
-            else if (line.find("location") == 0)
-            {
-                in_location = true;
-                current_location = Location();
-                std::string val = line.substr(8);
-                trim(val);
-                removeSemicolon(val);
-                current_location.path = val;
-            }
-            else if (in_location)
-            {
-                if (line.find("index") == 0)
-                {
-                    std::string val = line.substr(5);
-                    trim(val);
-                    removeSemicolon(val);
-                    current_location.index_file = val;
-                }
-                else if (line.find("upload") == 0)
-                {
-                    std::string val = line.substr(6);
-                    trim(val);
-                    removeSemicolon(val);
-                    current_location.allow_upload = (val == "true");
-                }
-            }
+            size_t start = line.find(' ');
+            size_t end = line.find('{');
+            std::string loc_path = line.substr(start, end - start);
+            trim(loc_path);
+            current_location = Location();
+            current_location.setPath(loc_path);
+            in_location = true;
+            continue;
+        }
+
+        // Parsing clé/valeur
+        size_t pos = line.find(' ');
+        if (pos == std::string::npos) continue;
+
+        std::string key = line.substr(0, pos);
+        std::string val = line.substr(pos + 1);
+        trim(val);
+
+        if (!val.empty() && val.back() == ';') val.pop_back();
+        trim(val);
+
+        if (in_location)
+        {
+            if (key == "index") current_location.setIndexFile(val);
+            else if (key == "upload") current_location.setAllowUpload(val == "true");
+        }
+        else if (in_server)
+        {
+            if (key == "port") current_server.setPort(std::atoi(val.c_str()));
+            else if (key == "server_name") current_server.setServerName(val);
+            else if (key == "root") current_server.setRoot(val);
         }
     }
 
+    file.close();
     return true;
 }
-

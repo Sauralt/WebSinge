@@ -1,31 +1,20 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include <string>
-#include <map>
+#include "Server.hpp"
+#include "Location.hpp"
 #include <vector>
 
-struct Location {
-    std::string path;
-    std::string index_file;
-    bool allow_upload;
+class Config {
+    private:
+        std::vector<Server> _servers;
 
-    Location() : allow_upload(false) {}
-};
+    public:
+        const std::vector<Server> &getServers() const { return _servers; }
+        void addServer(const Server &srv) { _servers.push_back(srv); }
+    };
 
-struct Server {
-    int port;
-    std::string server_name;
-    std::string root;
-    std::vector<Location> locations;
-
-    Server() : port(80) {}
-};
-
-struct Config {
-    std::vector<Server> servers;
-};
-
-bool parseConfigFile(const std::string &filename, Config &config);
+    bool parseConfigFile(const std::string &filename, Config &config);
 
 #endif
+

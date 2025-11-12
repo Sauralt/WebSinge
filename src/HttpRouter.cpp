@@ -17,7 +17,7 @@ std::string handleHello(const HttpRequest &req)
 std::string handleUpload(const HttpRequest &req)
 {
     std::ostringstream oss;
-    oss << "Upload received (" << req.body.size() << " bytes)";
+    oss << "Upload received (" << req.getBody().size() << " bytes)";
     return oss.str();
 }
 
@@ -29,11 +29,11 @@ std::string handleNotFound(const HttpRequest &req)
 
 std::string routeRequest(const HttpRequest &req)
 {
-    if (req.uri == "/")
+    if (req.getUri() == "/")
         return handleRoot(req);
-    else if (req.uri == "/hello")
+    else if (req.getUri() == "/hello")
         return handleHello(req);
-    else if (req.uri == "/upload")
+    else if (req.getUri() == "/upload")
         return handleUpload(req);
     return handleNotFound(req);
 }
