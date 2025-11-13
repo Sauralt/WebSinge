@@ -1,20 +1,25 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include "header.hpp"
 #include "Server.hpp"
 #include "Location.hpp"
-#include <vector>
 
-class Config {
-    private:
-        std::vector<Server> _servers;
+class Config
+{
+	private:
+		std::vector<Server> _servers;
 
-    public:
-        const std::vector<Server> &getServers() const { return _servers; }
-        void addServer(const Server &srv) { _servers.push_back(srv); }
-    };
+	public:
+	Config();
+	~Config();
+	Config(Config& copy);
+	Config&	operator=(Config& copy);
+	const std::vector<Server> &getServers() const;
+	void addServer(const Server &srv);
+};
 
-    bool parseConfigFile(const std::string &filename, Config &config);
+	bool parseConfigFile(const std::string &filename, Config &config);
 
 #endif
 
