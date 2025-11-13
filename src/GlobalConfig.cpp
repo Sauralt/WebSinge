@@ -52,7 +52,6 @@ bool parseConfigFile(const std::string &filename, Config &config)
 	Location current_location;
 	bool in_server = false;
 	bool in_location = false;
-
 	std::string line;
 	size_t lineno = 0;
 	while (std::getline(file, line))

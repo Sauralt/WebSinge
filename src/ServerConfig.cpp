@@ -24,7 +24,7 @@ static std::string buildHttpResponse(const std::string &status,
 	return ss.str();
 }
 
-static std::string readFileContent(const std::string &path)
+static std::string intToString(size_t n)
 {
 	std::ifstream file(path.c_str());
 	if (!file.is_open())
@@ -34,7 +34,7 @@ static std::string readFileContent(const std::string &path)
 	return buffer.str();
 }
 
-static void handleClient(int client_fd, const Server &srv)
+void handleClient(int client_fd, const Server &server)
 {
 	char buffer[8192];
 	std::memset(buffer, 0, sizeof(buffer));
@@ -89,7 +89,7 @@ static void handleClient(int client_fd, const Server &srv)
 	send(client_fd, response.c_str(), response.size(), 0);
 	}
 
-void runServer(const Server &srv)
+void runServer(const Server &server)
 {
 	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd < 0)
@@ -133,3 +133,5 @@ void runServer(const Server &srv)
 	close(server_fd);
 }
 
+    close(sockfd);
+}

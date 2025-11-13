@@ -1,4 +1,11 @@
 NAME = webserv
+C++ = c++
+C++_FLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
+INFILES = 	src/main.cpp \
+			src/HttpParser.cpp \
+			src/ServerConfig.cpp \
+			src/HttpRouter.cpp \
+			src/GlobalConfig.cpp \
 
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
