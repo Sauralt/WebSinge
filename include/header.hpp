@@ -10,6 +10,11 @@
 # include <csignal>
 # include <fstream>
 # include <sstream>
+# include <string>
+# include <cstring>
+# include <cstdlib>
+# include <algorithm>
+# include <cctype>
 
 std::string HtmlToString(const char* filename);
 

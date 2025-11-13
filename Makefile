@@ -3,10 +3,11 @@ NAME = webserv
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
 
-SRC_DIR = srcs
+SRC_DIR = src
 OBJ_DIR = obj
 
-CPP = main.cpp poll.cpp utils.cpp
+CPP =	main.cpp poll.cpp utils.cpp GlobalConfig.cpp HttpParser.cpp HttpRouter.cpp \
+		Location.cpp Server.cpp ServerConfig.cpp
 
 OBJS = $(CPP:%.cpp=$(OBJ_DIR)/%.o)
 

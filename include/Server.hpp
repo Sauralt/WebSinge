@@ -2,36 +2,31 @@
 #define SERVER_HPP
 
 #include "Location.hpp"
-#include <vector>
-#include <string>
-#include <iostream>
+#include "header.hpp"
 
-class Server {
-private:
-    int _port;
-    std::string _server_name;
-    std::string _root;
-    std::vector<Location> _locations;
-
-public:
-    Server() : _port(80) {}
-    int getPort() const { return _port; }
-    const std::string &getServerName() const { return _server_name; }
-    const std::string &getRoot() const { return _root; }
-    const std::vector<Location> &getLocations() const { return _locations; }
-
-    void setPort(int port) { _port = port; }
-    void setServerName(const std::string &name) { _server_name = name; }
-    void setRoot(const std::string &root) { _root = root; }
-    void addLocation(const Location &loc) { _locations.push_back(loc); }
-
-    void print() const {
-        std::cout << "Server: " << _server_name
-                  << " on port " << _port
-                  << " root=" << _root << std::endl;
-        for (size_t i = 0; i < _locations.size(); ++i)
-            _locations[i].print();
-    }
+class Server
+{
+	private:
+		int _port;
+		std::string _server_name;
+		std::string _root;
+		std::vector<Location> _locations;
+	public:
+		Server();
+		~Server();
+		Server(const Server& copy);
+		Server&	operator=(const Server& copy);
+		int getPort() const;
+		const std::string &getServerName() const;
+		const std::string &getRoot() const;
+		const std::vector<Location> &getLocations() const;
+		void setPort(int port);
+		void setServerName(const std::string &name);
+		void setRoot(const std::string &root);
+		void addLocation(const Location &loc);
+		void print() const;
 };
+
+void runServer(const Server &srv);
 
 #endif
