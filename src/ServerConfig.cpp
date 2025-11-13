@@ -2,13 +2,13 @@
 #include "../include/HttpParser.hpp"
 #include "../include/header.hpp"
 
-static void trim(std::string &s)
+static std::string trim(const std::string &s)
 {
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-			std::not1(std::ptr_fun<int, int>(std::isspace))));
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-			std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
-			s.end());
+    size_t start = s.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos)
+        return "";
+    size_t end = s.find_last_not_of(" \t\r\n");
+    return s.substr(start, end - start + 1);
 }
 
 static std::string buildHttpResponse(const std::string &status,
@@ -24,7 +24,7 @@ static std::string buildHttpResponse(const std::string &status,
 	return ss.str();
 }
 
-static std::string intToString(size_t n)
+static std::string readFileContent(const std::string &path)
 {
 	std::ifstream file(path.c_str());
 	if (!file.is_open())
@@ -34,7 +34,7 @@ static std::string intToString(size_t n)
 	return buffer.str();
 }
 
-void handleClient(int client_fd, const Server &server)
+static void handleClient(int client_fd, const Server &srv)
 {
 	char buffer[8192];
 	std::memset(buffer, 0, sizeof(buffer));
@@ -56,8 +56,8 @@ void handleClient(int client_fd, const Server &server)
 	{
 		const Location &loc = locations[i];
 		std::string loc_path = loc.getPath();
+		std::cout << "Checking location: " << loc_path << std::endl;
 		trim(loc_path);
-
 		if (req.getUri() == loc_path || (loc_path == "/" && req.getUri() == "/"))
 		{
 			std::cout << "Matched location: " << loc_path << std::endl;
@@ -89,7 +89,7 @@ void handleClient(int client_fd, const Server &server)
 	send(client_fd, response.c_str(), response.size(), 0);
 	}
 
-void runServer(const Server &server)
+void runServer(const Server &srv)
 {
 	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd < 0)
@@ -133,5 +133,3 @@ void runServer(const Server &server)
 	close(server_fd);
 }
 
-    close(sockfd);
-}
