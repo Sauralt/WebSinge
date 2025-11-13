@@ -118,7 +118,7 @@ bool parseConfigFile(const std::string &filename, Config &config)
                 }
                 trim(portstr);
                 int port = std::atoi(portstr.c_str());
-                if (port <= 0) port = 80; // fallback
+                if (port <= 0) port = 80;
                 current_server.setPort(port);
                 std::cout << "[CFG] Parsed port (line " << lineno << "): " << port << std::endl;
             }
