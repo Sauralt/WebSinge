@@ -1,143 +1,107 @@
 #include "../include/GlobalConfig.hpp"
 #include "../include/HttpParser.hpp"
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
-#include <cstdlib>
-#include <cstring>
-#include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <string>
+#include <sys/socket.h>
 
-static void trim(std::string &s)
+static std::string intToString(size_t n)
 {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-                                    std::not1(std::ptr_fun<int, int>(std::isspace))));
-    s.erase(std::find_if(s.rbegin(), s.rend(),
-                         std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
-            s.end());
+    std::ostringstream oss;
+    oss << n;
+    return oss.str();
 }
 
-static std::string buildHttpResponse(const std::string &status,
-                                     const std::string &contentType,
-                                     const std::string &body)
+void handleClient(int client_fd, const Server &server)
 {
-    std::ostringstream ss;
-    ss << "HTTP/1.1 " << status << "\r\n";
-    ss << "Content-Type: " << contentType << "\r\n";
-    ss << "Content-Length: " << body.size() << "\r\n";
-    ss << "Connection: close\r\n\r\n";
-    ss << body;
-    return ss.str();
-}
-
-static std::string readFileContent(const std::string &path)
-{
-    std::ifstream file(path.c_str());
-    if (!file.is_open())
-        return "";
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
-
-static void handleClient(int client_fd, const Server &srv)
-{
-    char buffer[8192];
-    std::memset(buffer, 0, sizeof(buffer));
-    int bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
-    if (bytes_read <= 0)
-        return;
-    HttpRequest req;
-    std::string raw(buffer, bytes_read);
-    if (parseHttpMessage(raw, req) != PARSE_OK)
+    char buffer[4096];
+    int bytes = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes <= 0)
     {
-        std::string err = buildHttpResponse("400 Bad Request", "text/plain", "Bad Request");
-        send(client_fd, err.c_str(), err.size(), 0);
+        close(client_fd);
         return;
     }
-    std::string file_path;
-    bool found = false;
-    const std::vector<Location> &locations = srv.getLocations();
-    for (size_t i = 0; i < locations.size(); ++i)
+    buffer[bytes] = '\0';
+    std::string request(buffer);
+    std::istringstream req_stream(request);
+    std::string method, uri, version;
+    req_stream >> method >> uri >> version;
+    std::cout << "Requête reçue : " << method << " " << uri << std::endl;
+    if (uri == "/")
+        uri = "/index.html";
+    std::string file_path = server.getRoot() + uri;
+    std::ifstream file(file_path.c_str(), std::ios::binary);
+    if (!file)
     {
-        const Location &loc = locations[i];
-        std::string loc_path = loc.getPath();
-        trim(loc_path);
-
-        if (req.getUri() == loc_path || (loc_path == "/" && req.getUri() == "/"))
-        {
-            std::cout << "Matched location: " << loc_path << std::endl;
-            if (req.getUri() == "/" && !loc.getIndexFile().empty())
-                file_path = srv.getRoot() + "/" + loc.getIndexFile();
-            else
-                file_path = srv.getRoot() + req.getUri();
-            found = true;
-            break;
-        }
-    }
-    if (!found)
-        file_path = srv.getRoot() + req.getUri();
-    std::string body = readFileContent(file_path);
-    if (body.empty())
-    {
-        std::string not_found = buildHttpResponse("404 Not Found", "text/plain", "404 Not Found");
-        send(client_fd, not_found.c_str(), not_found.size(), 0);
+        std::string notFound = "<h1>404 Not Found</h1>";
+        std::string response =
+            "HTTP/1.1 404 Not Found\r\n"
+            "Content-Type: text/html\r\n"
+            "Content-Length: " + intToString(notFound.size()) + "\r\n\r\n" +
+            notFound;
+        send(client_fd, response.c_str(), response.size(), 0);
+        close(client_fd);
         return;
     }
-    std::string content_type = "text/html";
-    if (file_path.find(".css") != std::string::npos)
-        content_type = "text/css";
+    std::string contentType = "text/plain";
+    if (file_path.find(".html") != std::string::npos)
+        contentType = "text/html";
+    else if (file_path.find(".css") != std::string::npos)
+        contentType = "text/css";
     else if (file_path.find(".png") != std::string::npos)
-        content_type = "image/png";
-    else if (file_path.find(".jpg") != std::string::npos || file_path.find(".jpeg") != std::string::npos)
-        content_type = "image/jpeg";
-    std::string response = buildHttpResponse("200 OK", content_type, body);
+        contentType = "image/png";
+    std::stringstream buffer_stream;
+    buffer_stream << file.rdbuf();
+    std::string body = buffer_stream.str();
+
+    std::string response =
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: " + contentType + "\r\n"
+        "Content-Length: " + intToString(body.size()) + "\r\n\r\n" +
+        body;
     send(client_fd, response.c_str(), response.size(), 0);
+    close(client_fd);
 }
 
-void runServer(const Server &srv)
+void runServer(const Server &server)
 {
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd < 0)
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
     {
-        std::cerr << "Error: failed to create socket" << std::endl;
+        std::cerr << "Erreur: impossible de créer le socket\n";
         return;
     }
 
     int opt = 1;
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    struct sockaddr_in address;
-    std::memset(&address, 0, sizeof(address));
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(srv.getPort());
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(server.getPort());
+    addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(sockfd, (sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        std::cerr << "Error: failed to bind on port " << srv.getPort() << std::endl;
-        close(server_fd);
+        std::cerr << "Erreur: impossible de binder le port " << server.getPort() << "\n";
+        close(sockfd);
         return;
     }
-    if (listen(server_fd, 10) < 0)
-    {
-        std::cerr << "Error: listen() failed" << std::endl;
-        close(server_fd);
-        return;
-    }
-    std::cout << "Server listening on port " << srv.getPort()
-              << " (root: " << srv.getRoot() << ")" << std::endl;
+
+    listen(sockfd, 10);
+    std::cout << "Serveur démarré sur le port " << server.getPort() << std::endl;
+
     while (true)
     {
-        struct sockaddr_in client_addr;
-        socklen_t addrlen = sizeof(client_addr);
-        int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addrlen);
+        int client_fd = accept(sockfd, NULL, NULL);
         if (client_fd < 0)
             continue;
-
-        handleClient(client_fd, srv);
-        close(client_fd);
+        handleClient(client_fd, server);
     }
-    close(server_fd);
-}
 
+    close(sockfd);
+}

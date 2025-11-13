@@ -134,7 +134,6 @@ bool parseConfigFile(const std::string &filename, Config &config)
             }
         }
     }
-
     file.close();
     return true;
 }

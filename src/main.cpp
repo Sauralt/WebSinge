@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 
-extern void runServer(const Server &srv);
+extern void runServer(const Server &server);
 
 int main(int argc, char **argv)
 {
