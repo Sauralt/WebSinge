@@ -86,10 +86,22 @@ int	polling::send_socket(int i)
 	}
 	else
 	{
-		std::ifstream file("../site/index.html");
 		buffer[bytesRead] = '\0';
-		std::cout << "message = " << buffer << "\n";
-		std::string response = file;
+		// std::cout << buffer;
+		// std::string response = "End\n";
+		// send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
+		std::string html = HtmlToString("site/index.html");
+		std::stringstream ss;
+		ss << html.size();
+		std::string content_length = ss.str();
+
+		std::string response =
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: text/html\r\n"
+			"Content-Length: " + content_length + "\r\n"
+			"\r\n" +
+			html;
+
 		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
 	}
 	return i;

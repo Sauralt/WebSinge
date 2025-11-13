@@ -9,5 +9,8 @@
 # include <vector>
 # include <csignal>
 # include <fstream>
+# include <sstream>
+
+std::string HtmlToString(const char* filename);
 
 #endif
