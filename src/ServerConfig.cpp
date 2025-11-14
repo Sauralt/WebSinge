@@ -48,11 +48,9 @@ std::string	handleClient(const Server &srv, std::string buffer)
 	{
 		const Location &loc = locations[i];
 		std::string loc_path = loc.getPath();
-		std::cout << "Checking location: " << loc_path << std::endl;
 		trim(loc_path);
 		if (req.getUri() == loc_path || (loc_path == "/" && req.getUri() == "/"))
 		{
-			std::cout << "Matched location: " << loc_path << std::endl;
 			if (req.getUri() == "/" && !loc.getIndexFile().empty())
 				file_path = srv.getRoot() + "/" + loc.getIndexFile();
 			else
@@ -72,8 +70,6 @@ std::string	handleClient(const Server &srv, std::string buffer)
 	std::string content_type = "text/html";
 	if (file_path.find(".css") != std::string::npos)
 		content_type = "text/css";
-	else if (file_path.find(".png") != std::string::npos)
-		content_type = "image/png";
 	else if (file_path.find(".jpg") != std::string::npos || file_path.find(".jpeg") != std::string::npos)
 		content_type = "image/jpeg";
 	std::string response = buildHttpResponse("200 OK", content_type, body);
