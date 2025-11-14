@@ -15,6 +15,7 @@
 # include <cstdlib>
 # include <algorithm>
 # include <cctype>
+# include <fcntl.h>
 
 std::string HtmlToString(const char* filename);
 

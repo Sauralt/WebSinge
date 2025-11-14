@@ -66,6 +66,7 @@ void	polling::add_socket(int sockfd)
 	}
 	else
 	{
+		fcntl(connection, F_SETFL, O_NONBLOCK);
 		pollfd newfd;
 		newfd.fd = connection;
 		newfd.events = POLLIN;
