@@ -1,6 +1,6 @@
 *.json
 *.o
-a.out
+webserv
 save.cpp
 obj/
 src/poll_main.cpp
