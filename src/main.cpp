@@ -1,6 +1,6 @@
-#include "../include/HttpParser.hpp"
+#include "../include/header.hpp"
 #include "../include/GlobalConfig.hpp"
-#include "../include/Server.hpp"
+#include "../include/poll.hpp"
 
 int gSignalStatus;
 
@@ -33,7 +33,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	std::cout << "Server starting..." << std::endl;
-	runServer(srv);
+	polling poll;
+	poll.pollrequest(srv);
 	return 0;
 }
 
