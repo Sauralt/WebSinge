@@ -27,6 +27,4 @@ class Server
 		void print() const;
 };
 
-void runServer(const Server &srv);
-
 #endif
