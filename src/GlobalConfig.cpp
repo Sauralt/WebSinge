@@ -54,15 +54,18 @@ bool parseConfigFile(const std::string &filename, Config &config)
 	bool in_location = false;
 	std::string line;
 	size_t lineno = 0;
+
 	while (std::getline(file, line))
 	{
 		++lineno;
 		trim(line);
-		if (line.empty() || line[0] == '#') continue;
-		if (line == "server {" || line == "server{")
+		if (line.empty() || line[0] == '#')
+			continue;
+		if (line.find("server") == 0 && line.find("{") != std::string::npos)
 		{
 			in_server = true;
 			in_location = false;
+			current_server = Server();
 			continue;
 		}
 		if (line == "}")
@@ -81,18 +84,16 @@ bool parseConfigFile(const std::string &filename, Config &config)
 		}
 		if (line.find("location") == 0)
 		{
-			size_t pos_loc = line.find("location");
-			size_t pos_brace = line.find('{', pos_loc + 8);
-			std::string path;
-			if (pos_brace != std::string::npos)
-				path = line.substr(pos_loc + 8, pos_brace - (pos_loc + 8));
-			else
-				path = line.substr(pos_loc + 8);
+			size_t pos_brace = line.find('{');
+			std::string path = line.substr(8, pos_brace - 8);
 			trim(path);
-			if (!path.empty() && path[path.size()-1] == ';') path.erase(path.size()-1, 1);
+			if (!path.empty() && path[path.size()-1] == ';')
+				path.erase(path.size()-1, 1);
 			trim(path);
-			Location current_location;
+
+			current_location = Location();
 			current_location.setPath(path);
+			std::cout << "[CFG] New location path: '" << path << "'" << std::endl;
 			in_location = true;
 			continue;
 		}
@@ -107,50 +108,29 @@ bool parseConfigFile(const std::string &filename, Config &config)
 			val.erase(val.size()-1, 1);
 		trim(val);
 		std::string lkey = lower(key);
+
 		if (in_location)
 		{
 			if (lkey == "index")
-			{
 				current_location.setIndexFile(val);
-			}
 			else if (lkey == "upload")
-			{
-				trim(val);
 				current_location.setAllowUpload(lower(val) == "true");
-			}
 		}
 		else if (in_server)
 		{
 			if (lkey == "port" || lkey == "listen")
 			{
-				trim(val);
-				std::string portstr = val;
-				size_t colon = portstr.rfind(':');
-				if (colon != std::string::npos)
-				{
-					std::string after = portstr.substr(colon + 1);
-					trim(after);
-					portstr = after;
-				}
-				trim(portstr);
-				int port = std::atoi(portstr.c_str());
+				int port = std::atoi(val.c_str());
 				if (port <= 0) port = 80;
 				current_server.setPort(port);
-				std::cout << "[CFG] Parsed port (line " << lineno << "): " << port << std::endl;
+				std::cout << "[CFG] Parsed port: " << port << std::endl;
 			}
 			else if (lkey == "server_name")
-			{
 				current_server.setServerName(val);
-				std::cout << "[CFG] Parsed server_name: " << val << std::endl;
-			}
 			else if (lkey == "root")
-			{
 				current_server.setRoot(val);
-				std::cout << "[CFG] Parsed root: " << val << std::endl;
-			}
 		}
 	}
-
 	file.close();
 	return true;
 }

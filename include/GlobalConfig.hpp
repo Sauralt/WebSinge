@@ -1,9 +1,8 @@
 #ifndef CONFIG_HPP
-#define CONFIG_HPP
+# define CONFIG_HPP
 
-#include "header.hpp"
-#include "Server.hpp"
-#include "Location.hpp"
+# include "header.hpp"
+# include "Server.hpp"
 
 class Config
 {

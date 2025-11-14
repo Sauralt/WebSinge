@@ -1,8 +1,8 @@
 #ifndef SERVER_HPP
-#define SERVER_HPP
+# define SERVER_HPP
 
-#include "Location.hpp"
-#include "header.hpp"
+# include "header.hpp"
+# include "Location.hpp"
 
 class Server
 {

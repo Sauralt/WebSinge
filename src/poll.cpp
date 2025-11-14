@@ -22,7 +22,7 @@ void	signal_handler(int sig)
 	gSignalStatus = sig;
 }
 
-int	polling::socketfd()
+int	polling::socketfd(const Server& srv)
 {
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1)
@@ -38,11 +38,11 @@ int	polling::socketfd()
 	sockaddr_in sockaddr;
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_addr.s_addr = INADDR_ANY;
-	sockaddr.sin_port = htons(8080);
+	sockaddr.sin_port = htons(srv.getPort());
 
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0)
 	{
-		std::cerr << "Failed to bind to port 8080." << std::endl;
+		std::cerr << "Failed to bind to port :" << srv.getPort() << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -74,7 +74,7 @@ void	polling::add_socket(int sockfd)
 	}
 }
 
-int	polling::send_socket(int i)
+int	polling::send_socket(int i, const Server& srv)
 {
 	char buffer[101];
 	ssize_t bytesRead = recv(this->_pollrequest[i].fd, buffer, 100, 0);
@@ -87,31 +87,17 @@ int	polling::send_socket(int i)
 	else
 	{
 		buffer[bytesRead] = '\0';
-		// std::cout << buffer;
-		// std::string response = "End\n";
-		// send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
-		std::string html = HtmlToString("site/index.html");
-		std::stringstream ss;
-		ss << html.size();
-		std::string content_length = ss.str();
-
-		std::string response =
-			"HTTP/1.1 200 OK\r\n"
-			"Content-Type: text/html\r\n"
-			"Content-Length: " + content_length + "\r\n"
-			"\r\n" +
-			html;
-
+		std::string response = handleClient(srv, buffer);
 		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
 	}
 	return i;
 }
 
-void	polling::pollrequest()
+void	polling::pollrequest(const Server& srv)
 {
 	gSignalStatus = 0;
 	std::signal(SIGINT, signal_handler);
-	int	sockfd = socketfd();
+	int	sockfd = socketfd(srv);
 	std::vector<pollfd> pollrequest;
 	pollfd firstpoll;
 	firstpoll.fd = sockfd;
@@ -129,7 +115,7 @@ void	polling::pollrequest()
 				if (this->_pollrequest[i].fd == sockfd)
 					add_socket(sockfd);
 				else
-					i = send_socket(i);
+					i = send_socket(i, srv);
 			}
 		}
 	}
