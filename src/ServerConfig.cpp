@@ -1,13 +1,13 @@
 #include "../include/header.hpp"
 #include "../include/ServerConfig.hpp"
 
-static void trim(std::string &s)
+static std::string trim(const std::string &s)
 {
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-			std::not1(std::ptr_fun<int, int>(std::isspace))));
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-			std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
-			s.end());
+    size_t start = s.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos)
+        return "";
+    size_t end = s.find_last_not_of(" \t\r\n");
+    return s.substr(start, end - start + 1);
 }
 
 static std::string buildHttpResponse(const std::string &status,
@@ -22,16 +22,6 @@ static std::string buildHttpResponse(const std::string &status,
 	ss << body;
 	return ss.str();
 }
-
-// static std::string intToString(size_t n)
-// {
-// 	std::ifstream file(path.c_str());
-// 	if (!file.is_open())
-// 		return "";
-// 	std::stringstream buffer;
-// 	buffer << file.rdbuf();
-// 	return buffer.str();
-// }
 
 static std::string readFileContent(const std::string &path)
 {
@@ -58,8 +48,8 @@ std::string	handleClient(const Server &srv, std::string buffer)
 	{
 		const Location &loc = locations[i];
 		std::string loc_path = loc.getPath();
+		std::cout << "Checking location: " << loc_path << std::endl;
 		trim(loc_path);
-
 		if (req.getUri() == loc_path || (loc_path == "/" && req.getUri() == "/"))
 		{
 			std::cout << "Matched location: " << loc_path << std::endl;

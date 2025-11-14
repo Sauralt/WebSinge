@@ -43,3 +43,5 @@ void Location::print() const
 				<< ", index=" << _index_file
 				<< ", upload=" << (_allow_upload ? "true" : "false") << std::endl;
 }
+
+
