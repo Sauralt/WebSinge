@@ -6,6 +6,7 @@ INFILES = 	src/main.cpp \
 			src/ServerConfig.cpp \
 			src/HttpRouter.cpp \
 			src/GlobalConfig.cpp \
+			src/CGI.cpp \
 
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
