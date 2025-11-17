@@ -94,5 +94,3 @@ std::string handleClient(const Server &srv, std::string buffer)
     return buildHttpResponse("200 OK", getMimeType(fullPath), body);
 }
 
-
-
