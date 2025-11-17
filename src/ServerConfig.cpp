@@ -79,10 +79,11 @@ std::string handleClient(const Server &srv, std::string buffer)
 	std::string fullPath = srv.getRoot() + uri;
 	if (fullPath.find(".py") != std::string::npos)
 	{
-		// CGI_CORENTIN if (!runcgi)
+		CGI temp;
+		CGI cgi(temp.ScriptFileName(buffer), req);
+		std::string content = cgi.execCGI(buffer);
+		if (content.empty())
 			return buildHttpResponse("502 Bad Gateway", "text/html", buildErrorPage("502 Bad Gateway", "Erreur lors de l'exécution du CGI."));
-		//CORENTIN AFFICHER LA PAGE CGI AVEC CONTENT
-		std::string content;
 		return buildHttpResponse("200 OK", "text/html", content);
 	}
 	std::string body = readFileContent(fullPath);
