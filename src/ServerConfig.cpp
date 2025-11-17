@@ -45,6 +45,7 @@ static std::string readFileContent(const std::string &path)
 
 std::string	handleClient(const Server &srv, std::string buffer)
 {
+	std::cout << buffer;
 	HttpRequest req;
 	if (parseHttpMessage(buffer, req) != PARSE_OK)
 	{
@@ -86,6 +87,11 @@ std::string	handleClient(const Server &srv, std::string buffer)
 		content_type = "image/png";
 	else if (file_path.find(".jpg") != std::string::npos || file_path.find(".jpeg") != std::string::npos)
 		content_type = "image/jpeg";
+	else if (file_path.find("/cgi/") != std::string::npos)
+	{
+		CGI cgi(file_path, req);
+		body = cgi.execCGI(body);
+	}
 	std::string response = buildHttpResponse("200 OK", content_type, body);
 	return response;
 }
