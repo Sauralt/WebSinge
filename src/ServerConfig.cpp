@@ -1,113 +1,96 @@
 #include "../include/header.hpp"
 #include "../include/ServerConfig.hpp"
-
-static void trim(std::string &s)
-{
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-			std::not1(std::ptr_fun<int, int>(std::isspace))));
-	s.erase(std::find_if(s.rbegin(), s.rend(),
-			std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
-			s.end());
-}
+#include "../include/CGI.hpp"
+#include "../include/Mime.hpp"
+#include "CGI.cpp"
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <map>
 
 static std::string buildHttpResponse(const std::string &status,
-									const std::string &contentType,
-									const std::string &body)
+                                     const std::string &contentType,
+                                     const std::string &body)
 {
-	std::ostringstream ss;
-	ss << "HTTP/1.1 " << status << "\r\n";
-	ss << "Content-Type: " << contentType << "\r\n";
-	ss << "Content-Length: " << body.size() << "\r\n";
-	ss << "Connection: close\r\n\r\n";
-	ss << body;
-	return ss.str();
+    std::ostringstream ss;
+    ss << "HTTP/1.1 " << status << "\r\n";
+    ss << "Content-Type: " << contentType << "\r\n";
+    ss << "Content-Length: " << body.size() << "\r\n";
+    ss << "Connection: close\r\n\r\n";
+    ss << body;
+    return ss.str();
 }
 
-// static std::string intToString(size_t n)
-// {
-// 	std::ifstream file(path.c_str());
-// 	if (!file.is_open())
-// 		return "";
-// 	std::stringstream buffer;
-// 	buffer << file.rdbuf();
-// 	return buffer.str();
-// }
+static std::string wrapHtmlPage(const std::string &title, const std::string &content)
+{
+    std::ostringstream ss;
+    ss << "<!DOCTYPE html>\n<html>\n<head>\n";
+    ss << "<meta charset=\"utf-8\">\n";
+    ss << "<title>" << title << "</title>\n";
+    ss << "<link rel=\"stylesheet\" href=\"/assets/index.css\">\n";
+    ss << "</head>\n<body>\n";
+    ss << content;
+    ss << "\n</body>\n</html>";
+    return ss.str();
+}
 
-static std::string readFileContent(const std::string &path)
+std::string readFileContent(const std::string &path)
 {
     std::ifstream file(path.c_str());
     if (!file.is_open())
         return "";
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    return ss.str();
 }
 
-static std::string	ScriptFileName(std::string request)
+std::string getMimeType(const std::string &path)
 {
-	std::string	res;
-	std::string::iterator it;
-
-	std::cout << request;
-	for (it = request.begin() + 4; (*it) != '?'; it++)
-		res.push_back((*it));
-	if (it == request.end())
-		return NULL;
-	if (res.find("cgi") != std::string::npos)
-		return NULL;
-	std::cout << res;
-	return res;
+	if (path.rfind(".html") != std::string::npos)
+		return "text/html";
+	if (path.rfind(".css") != std::string::npos)
+		return "text/css";
+	if (path.rfind(".js") != std::string::npos)
+		return "application/javascript";
+	if (path.rfind(".png") != std::string::npos)
+		return "image/png";
+	if (path.rfind(".jpg") != std::string::npos || path.rfind(".jpeg") != std::string::npos)
+		return "image/jpeg";
+	return "application/octet-stream";
 }
 
-std::string	handleClient(const Server &srv, std::string buffer)
+static std::string buildErrorPage(const std::string &statusCode, const std::string &message)
 {
-	std::cout << buffer;
+	std::ostringstream ss;
+	ss << "<h1>" << statusCode << "</h1>\n";
+	ss << "<p>" << message << "</p>\n";
+	ss << "<a href=\"/index.html\">Retour à l'accueil</a>\n";
+	return wrapHtmlPage(statusCode, ss.str());
+}
+
+std::string handleClient(const Server &srv, std::string buffer)
+{
 	HttpRequest req;
 	if (parseHttpMessage(buffer, req) != PARSE_OK)
-	{
-		std::string err = buildHttpResponse("400 Bad Request", "text/plain", "Bad Request");
-		return err;
-	}
-	std::string file_path;
-	bool found = false;
-	const std::vector<Location> &locations = srv.getLocations();
-	for (size_t i = 0; i < locations.size(); ++i)
-	{
-		const Location &loc = locations[i];
-		std::string loc_path = loc.getPath();
-		trim(loc_path);
+		return buildHttpResponse("400 Bad Request", "text/html",
+									buildErrorPage("400 Bad Request", "La requête est invalide."));
 
-		if (req.getUri() == loc_path || (loc_path == "/" && req.getUri() == "/"))
-		{
-			std::cout << "Matched location: " << loc_path << std::endl;
-			if (req.getUri() == "/" && !loc.getIndexFile().empty())
-				file_path = srv.getRoot() + "/" + loc.getIndexFile();
-			else
-				file_path = srv.getRoot() + req.getUri();
-			found = true;
-			break;
-		}
+	std::string uri = req.getUri();
+	std::string fullPath = srv.getRoot() + uri;
+	if (fullPath.find(".py") != std::string::npos)
+	{
+		// CGI_CORENTIN if (!runcgi)
+			return buildHttpResponse("502 Bad Gateway", "text/html", buildErrorPage("502 Bad Gateway", "Erreur lors de l'exécution du CGI."));
+		//CORENTIN AFFICHER LA PAGE CGI AVEC CONTENT
+		std::string content;
+		return buildHttpResponse("200 OK", "text/html", content);
 	}
-	if (!found)
-		file_path = srv.getRoot() + req.getUri();
-	std::string body = readFileContent(file_path);
+	std::string body = readFileContent(fullPath);
 	if (body.empty())
 	{
-		std::string not_found = buildHttpResponse("404 Not Found", "text/plain", "404 Not Found");
-		return not_found;
+		return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
 	}
-	std::string content_type = "text/html";
-	if (file_path.find(".css") != std::string::npos)
-		content_type = "text/css";
-	else if (file_path.find(".png") != std::string::npos)
-		content_type = "image/png";
-	else if (file_path.find(".jpg") != std::string::npos || file_path.find(".jpeg") != std::string::npos)
-		content_type = "image/jpeg";
-	else if (!ScriptFileName(buffer).empty())
-	{
-		CGI cgi(file_path, req);
-		body = cgi.execCGI(body);
-	}
-	std::string response = buildHttpResponse("200 OK", content_type, body);
-	return response;
+
+	return buildHttpResponse("200 OK", getMimeType(fullPath), body);
 }
+
