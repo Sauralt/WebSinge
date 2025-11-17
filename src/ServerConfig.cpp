@@ -2,11 +2,6 @@
 #include "../include/ServerConfig.hpp"
 #include "../include/CGI.hpp"
 #include "../include/Mime.hpp"
-#include "CGI.cpp"
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <map>
 
 static std::string buildHttpResponse(const std::string &status,
                                      const std::string &contentType,

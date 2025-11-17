@@ -30,16 +30,21 @@ void	CGI::initEnv(std::string CGIPath, HttpRequest& req)
 	s << req.getContentLength();
 	str = s.str();
 	this->_env["CONTENT_LENGTH"] = str;
-	this->_env["METHOD"] = req.getMethod();
-	this->_env["URI"] = req.getUri();
+	this->_env["REQUEST_METHOD"] = req.getMethod();
+	this->_env["REQUEST_URI"] = req.getUri();
 	this->_env["QUERY_STRING"] = req.getQueryString();
-	this->_env["HTTP_VER"] = req.getHttpVersion();
-	this->_env["BODY"] = req.getBody();
+	this->_env["SERVER_PROTOCOL"] = req.getHttpVersion();
 	this->_env["REDIRECT"] = "200";
-	this->_env["COMMON_GATEWAY_INTERFACE"] = "CGI/1.1";
-	this->_env["CONTENT_TYPE"] = req.getHeaders().find("Content-Type")->second;
-	this->_env["HTTP_PROTOCOLE"] = "HTTP/1.1";
-	this->_env["SCRIPT"] = CGIPath;
+	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	this->_env["CONTENT_TYPE"] = req.getHeaderValue("Content-Type");
+	this->_env["SERVER_PROTOCOLE"] = "HTTP/1.1";
+	this->_env["SCRIPT_NAME"] = CGIPath;
+	this->_env["SCRIPT_FILENAME"] = CGIPath;
+	this->_env["SERVER_SOFTWARE"] = "webserv/1.0";
+	//A CHANGER D'URGENCE
+	this->_env["SERVER_NAME"] = "localhost";
+	this->_env["SERVER_PORT"] = "8002";
+
 }
 
 char**	CGI::MapToChar()
@@ -83,6 +88,7 @@ std::string	CGI::execCGI(std::string request)
 	long	fdIn = fileno(infile);
 	long	fdOut = fileno(outfile);
 	write(fdIn, request.c_str(), request.size());
+	lseek(fdIn, 0, SEEK_SET);
 	pid = fork();
 	if (pid < 0)
 		return NULL;
@@ -98,6 +104,7 @@ std::string	CGI::execCGI(std::string request)
 	{
 		char	buffer[100];
 		waitpid(-1, NULL, 0);
+		lseek(fdOut, 0, SEEK_SET);
 		int ret = 1;
 		while (ret > 0)
 		{
