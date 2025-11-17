@@ -43,6 +43,22 @@ static std::string readFileContent(const std::string &path)
     return buffer.str();
 }
 
+static std::string	ScriptFileName(std::string request)
+{
+	std::string	res;
+	std::string::iterator it;
+
+	std::cout << request;
+	for (it = request.begin() + 4; (*it) != '?'; it++)
+		res.push_back((*it));
+	if (it == request.end())
+		return NULL;
+	if (res.find("cgi") != std::string::npos)
+		return NULL;
+	std::cout << res;
+	return res;
+}
+
 std::string	handleClient(const Server &srv, std::string buffer)
 {
 	std::cout << buffer;
@@ -87,7 +103,7 @@ std::string	handleClient(const Server &srv, std::string buffer)
 		content_type = "image/png";
 	else if (file_path.find(".jpg") != std::string::npos || file_path.find(".jpeg") != std::string::npos)
 		content_type = "image/jpeg";
-	else if (file_path.find("/cgi/") != std::string::npos)
+	else if (!ScriptFileName(buffer).empty())
 	{
 		CGI cgi(file_path, req);
 		body = cgi.execCGI(body);

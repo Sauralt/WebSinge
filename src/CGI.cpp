@@ -1,4 +1,4 @@
-#include "CGI.hpp"
+#include "../include/CGI.hpp"
 
 CGI::CGI()
 {
@@ -62,9 +62,8 @@ char**	CGI::MapToChar()
 std::string	CGI::ScriptFileName(std::string request)
 {
 	std::string	res;
-	std::string::iterator CGIend;
 
-	for (std::string::iterator it = request.begin() + 4; (*it) != '?';)
+	for (std::string::iterator it = request.begin() + 4; (*it) != '?'; it++)
 		res.push_back((*it));
 	return res;
 }
@@ -76,8 +75,9 @@ std::string	CGI::execCGI(std::string request)
 	std::string	filename = ScriptFileName(request);
 	std::string	cgi;
 	if (!env)
-		return;
-	int Stdin, Stdout = dup(STDIN_FILENO), dup(STDOUT_FILENO);
+		return NULL;
+	int Stdin = dup(STDIN_FILENO);
+	int Stdout = dup(STDOUT_FILENO);
 	FILE *infile = tmpfile();
 	FILE *outfile = tmpfile();
 	long	fdIn = fileno(infile);
@@ -90,7 +90,8 @@ std::string	CGI::execCGI(std::string request)
 	{
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		execve(filename.c_str(), NULL, env);
+		char * const * nil = NULL;
+		execve(filename.c_str(), nil, env);
 		write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
 	}
 	else
@@ -101,7 +102,7 @@ std::string	CGI::execCGI(std::string request)
 		while (ret > 0)
 		{
 			ret = read(fdOut, buffer, 99);
-			buffer[100] == '\0';
+			buffer[100] = '\0';
 			cgi += buffer;
 		}
 	}
