@@ -10,6 +10,7 @@ class Server
 		int _port;
 		std::string _server_name;
 		std::string _root;
+    	std::string _host;
 		std::vector<Location> _locations;
 	public:
 		Server();
@@ -21,10 +22,12 @@ class Server
 		const std::string &getRoot() const;
 		const std::vector<Location> &getLocations() const;
 		void setPort(int port);
+    	void setHost(const std::string &h) { _host = h; }
 		void setServerName(const std::string &name);
 		void setRoot(const std::string &root);
 		void addLocation(const Location &loc);
 		void print() const;
+		const std::string& getHost() const { return _host; }
 };
 
 #endif

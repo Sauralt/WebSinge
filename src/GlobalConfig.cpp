@@ -127,8 +127,17 @@ bool parseConfigFile(const std::string &filename, Config &config)
 			}
 			else if (lkey == "server_name")
 				current_server.setServerName(val);
-			else if (lkey == "root")
+			else if (lkey == "root") 
+			{
 				current_server.setRoot(val);
+			}
+			else if (lkey == "host") {
+				if (val != "0.0.0.0" && val != "127.0.0.1") {
+					std::cerr << "Erreur: le host doit être 'localhost' ou '127.0.0.1' (ligne " << lineno << ")" << std::endl;
+					return false;
+				}
+				current_server.setHost(val);
+			}
 		}
 	}
 	file.close();
