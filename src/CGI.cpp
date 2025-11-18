@@ -4,9 +4,9 @@ CGI::CGI()
 {
 }
 
-CGI::CGI(std::string CGIPath, HttpRequest &req)
+CGI::CGI(std::string CGIPath, HttpRequest &req, const Server &srv)
 {
-	this->initEnv(CGIPath, req);
+	this->initEnv(CGIPath, req, srv);
 }
 
 CGI::~CGI()
@@ -23,28 +23,33 @@ CGI&	CGI::operator=(CGI& copy)
 	return *this;
 }
 
-void	CGI::initEnv(std::string CGIPath, HttpRequest& req)
+void	CGI::initEnv(std::string CGIPath, HttpRequest& req, const Server &srv)
 {
 	std::string str;
+	std::string str2;
 	std::stringstream s;
+	std::stringstream s2;
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+	std::string abs = std::string(cwd) + "/site" + CGIPath;
 	s << req.getContentLength();
 	str = s.str();
 	this->_env["CONTENT_LENGTH"] = str;
+	s2 << srv.getPort();
+	str2 = s2.str();
+	this->_env["SERVER_PORT"] = str2;
 	this->_env["REQUEST_METHOD"] = req.getMethod();
 	this->_env["REQUEST_URI"] = req.getUri();
 	this->_env["QUERY_STRING"] = req.getQueryString();
 	this->_env["SERVER_PROTOCOL"] = req.getHttpVersion();
-	this->_env["REDIRECT"] = "200";
 	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	this->_env["CONTENT_TYPE"] = req.getHeaderValue("Content-Type");
-	this->_env["SERVER_PROTOCOLE"] = "HTTP/1.1";
+	this->_env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_env["SCRIPT_NAME"] = CGIPath;
-	this->_env["SCRIPT_FILENAME"] = CGIPath;
-	this->_env["SERVER_SOFTWARE"] = "webserv/1.0";
-	//A CHANGER D'URGENCE
-	this->_env["SERVER_NAME"] = "localhost";
-	this->_env["SERVER_PORT"] = "8002";
-
+	this->_env["SCRIPT_FILENAME"] = abs;
+	this->_env["SERVER_SOFTWARE"] = srv.getServerName() + "/1.0";
+	this->_env["SERVER_NAME"] = srv.getServerName();
+	this->_env["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin";
 }
 
 char**	CGI::MapToChar()
@@ -77,14 +82,13 @@ std::string	CGI::execCGI(std::string request)
 {
 	pid_t	pid;
 	char**	env = this->MapToChar();
-	std::string	filename = ScriptFileName(request);
 	std::string	cgi;
 	if (!env)
-		return NULL;
-	int Stdin = dup(STDIN_FILENO);
-	int Stdout = dup(STDOUT_FILENO);
-	FILE *infile = tmpfile();
-	FILE *outfile = tmpfile();
+		return "500 Internal server error\r\n\r\n";
+	int		Stdin = dup(STDIN_FILENO);
+	int		Stdout = dup(STDOUT_FILENO);
+	FILE	*infile = tmpfile();
+	FILE	*outfile = tmpfile();
 	long	fdIn = fileno(infile);
 	long	fdOut = fileno(outfile);
 	write(fdIn, request.c_str(), request.size());
@@ -97,8 +101,8 @@ std::string	CGI::execCGI(std::string request)
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
 		char * const * nil = NULL;
-		execve(filename.c_str(), nil, env);
-		write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
+		execve(this->_env["SCRIPT_FILENAME"].c_str(), nil, env);
+		write(STDOUT_FILENO, "500 Internal server error\r\n\r\n", 25);
 	}
 	else
 	{
@@ -109,7 +113,7 @@ std::string	CGI::execCGI(std::string request)
 		while (ret > 0)
 		{
 			ret = read(fdOut, buffer, 99);
-			buffer[100] = '\0';
+			buffer[ret] = '\0';
 			cgi += buffer;
 		}
 	}

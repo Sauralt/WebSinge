@@ -6,6 +6,7 @@ int gSignalStatus;
 
 int main(int argc, char **argv)
 {
+	signal(SIGPIPE, SIG_IGN);
 	Config config;
 
 	std::string conf_file = (argc == 1 ? "config/Singe.conf" : argv[1]);
@@ -21,20 +22,21 @@ int main(int argc, char **argv)
 		std::cerr << "Erreur: aucun serveur défini dans la configuration." << std::endl;
 		return 1;
 	}
-	const Server &srv = config.getServers()[0];
-	int port = srv.getPort();
-	std::cout << "Server: " << srv.getServerName()
-				<< " listening on port " << port << std::endl;
+	// const Server &srv = config.getServers()[0];
+	// int port = srv.getPort();
+	// std::cout << "Server: " << srv.getServerName()
+	// 			<< " listening on port " << port << std::endl;
 
-	std::cout << "Root directory: " << srv.getRoot() << std::endl;
-	if (port <= 0 || port > 65535)
-	{
-		std::cerr << "Port invalide: " << port << std::endl;
-		return 1;
-	}
+	// std::cout << "Root directory: " << srv.getRoot() << std::endl;
+	// if (port <= 0 || port > 65535)
+	// {
+	// 	std::cerr << "Port invalide: " << port << std::endl;
+	// 	return 1;
+	// }
 	std::cout << "Server starting..." << std::endl;
 	polling poll;
-	poll.pollrequest(srv);
+	for (int i = 0; i < config.getservNum(); i++)
+		poll.pollrequest(config.getServers()[i]);
 	return 0;
 }
 

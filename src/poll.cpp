@@ -87,10 +87,10 @@ int	polling::send_socket(int i, const Server& srv)
 	}
 	else
 	{
-		std::cout << buffer << std::endl;
 		buffer[bytesRead] = '\0';
 		std::string response = handleClient(srv, buffer);
 		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
+		close(this->_pollrequest[i].fd);
 	}
 	return i;
 }
@@ -121,4 +121,5 @@ void	polling::pollrequest(const Server& srv)
 			}
 		}
 	}
+	close(sockfd);
 }

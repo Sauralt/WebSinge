@@ -2,6 +2,7 @@
 # define CGI_HPP
 # include "header.hpp"
 # include "HttpParser.hpp"
+# include "Server.hpp"
 
 class CGI
 {
@@ -9,13 +10,13 @@ class CGI
 		std::map<std::string, std::string> _env;
 	public:
 		CGI();
-		CGI(std::string CGIPath, HttpRequest &req);
+		CGI(std::string CGIPath, HttpRequest &req, const Server &srv);
 		~CGI();
 		CGI(CGI& copy);
 		CGI&	operator=(CGI& copy);
 		std::string	execCGI(std::string cgi);
 		char**	MapToChar();
-		void	initEnv(std::string CGIPath, HttpRequest& req);
+		void	initEnv(std::string CGIPath, HttpRequest& req, const Server &srv);
 		std::string	ScriptFileName(std::string request);
 };
 
