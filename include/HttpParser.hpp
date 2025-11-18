@@ -2,7 +2,6 @@
 #define HTTP_PARSER_HPP
 
 #include "header.hpp"
-#include <map>
 
 enum ParseStatus {
 	PARSE_INCOMPLETE = 0,
@@ -10,7 +9,8 @@ enum ParseStatus {
 	PARSE_ERROR = -1
 	};
 
-	class HttpRequest {
+class HttpRequest
+{
 	private:
 		std::string _method;
 		std::string _uri;
@@ -49,7 +49,7 @@ enum ParseStatus {
 		bool hasHeader(const std::string &key) const;
 		std::string getHeaderValue(const std::string &key) const;
 		void clear();
-	};
+};
 
 	ParseStatus parseHttpMessage(const std::string &buffer, HttpRequest &req);
 	ParseStatus parseHttpBody(const std::string &buffer, HttpRequest &req);

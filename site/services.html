@@ -17,14 +17,15 @@
 	<main>
   		<h1>Services</h1>
 		<h2>Calculatrice :</h2>
-  		<form action="/cgi/test.py" method="get">
-			<label class="calculatrice" for="number1">nombre1</label> <br />
-			<input class="number" type = "number" name = "number1">
-			<label class="calculatrice" for="operator">operateur</label> <br /> 
-			<input class="number" type = "text" name = "operator">
-			<label class="calculatrice" for="number2">nombre2</label> <br /> 
-			<input class="number" type = "number" name = "number2"> 
-			<input class="number" type = "submit" value = "Calculer" /> <br />
+  		<form action="/cgi/calculator.py" method="get">
+			<label class="calculatrice" for="number1">nombre1</label>
+			<input class="number" type = "text" name = "number1"><br /> 
+			<label class="calculatrice" for="operator">operateur</label>
+			<input class="number" type = "text" name = "operator"><br /> 
+			<label class="calculatrice" for="number2">nombre2</label>
+			<input class="number" type = "text" name = "number2"><br /> 
+			
+			<input class="number" type = "submit" value = "Calculer"/> <br />
 		</form>
 
   		<h2>Uploader un fichier :</h2>

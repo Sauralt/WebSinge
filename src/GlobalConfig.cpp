@@ -3,7 +3,7 @@
 #include <set>
 
 Config::Config()
-{}
+{_servNum = 0;}
 
 Config::~Config()
 {}
@@ -19,11 +19,17 @@ Config& Config::operator=(Config& copy)
 	return *this;
 }
 
-const std::vector<Server> &Config::getServers() const
+const std::vector<Server> &Config::getServers()
 { return _servers; }
 
+int	Config::getservNum()
+{ return _servNum; }
+
 void Config::addServer(const Server &srv)
-{ _servers.push_back(srv); }
+{
+	_servers.push_back(srv);
+	_servNum++;
+}
 
 static void trim(std::string &s)
 {
