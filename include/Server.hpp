@@ -12,12 +12,15 @@ class Server
 		std::string _root;
     	std::string _host;
 		std::vector<Location> _locations;
+		int _clientBodyBufferSize;
 	public:
 		Server();
 		~Server();
 		Server(const Server& copy);
 		Server&	operator=(const Server& copy);
 		int getPort() const;
+		void setClientBodyBufferSize(int size);
+    	int  getClientBodyBufferSize() const ;
 		const std::string &getServerName() const;
 		const std::string &getRoot() const;
 		const std::vector<Location> &getLocations() const;

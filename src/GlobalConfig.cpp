@@ -75,7 +75,7 @@ bool parseConfigFile(const std::string &filename, Config &config)
             in_server = true;
             in_location = false;
             current_server = Server();
-            server_keys.clear(); // reset for new server block
+            server_keys.clear();
             continue;
         }
         if (line == "}")
@@ -157,6 +157,19 @@ bool parseConfigFile(const std::string &filename, Config &config)
                 }
                 current_server.setHost(val);
             }
+            else if (lkey == "client_body_buffer_size")
+            {
+                int size = std::atoi(val.c_str());
+                if (size <= 0)
+                {
+                    std::cerr << "Erreur: valeur invalide pour client_body_buffer_size (ligne "
+                            << lineno << ")" << std::endl;
+                    return false;
+                }
+                current_server.setClientBodyBufferSize(size);
+                std::cout << "[CFG] client_body_buffer_size = " << size << std::endl;
+            }
+
         }
     }
 	file.close();

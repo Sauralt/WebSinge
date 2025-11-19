@@ -14,7 +14,7 @@ class CGI
 		~CGI();
 		CGI(CGI& copy);
 		CGI&	operator=(CGI& copy);
-		std::string	execCGI(std::string cgi);
+		std::string	execCGI(std::string cgi, const Server &srv);
 		char**	MapToChar();
 		void	initEnv(std::string CGIPath, HttpRequest& req, const Server &srv);
 		std::string	ScriptFileName(std::string request);

@@ -1,4 +1,5 @@
 #include "../include/CGI.hpp"
+#include "../include/Server.hpp"
 
 CGI::CGI()
 {
@@ -78,7 +79,7 @@ std::string	CGI::ScriptFileName(std::string request)
 	return res;
 }
 
-std::string	CGI::execCGI(std::string request)
+std::string	CGI::execCGI(std::string request, const Server &srv)
 {
 	pid_t	pid;
 	char**	env = this->MapToChar();
@@ -106,13 +107,14 @@ std::string	CGI::execCGI(std::string request)
 	}
 	else
 	{
-		char	buffer[100];
+		int bufSize = srv.getClientBodyBufferSize();
+		char* buffer = new char[bufSize];
 		waitpid(-1, NULL, 0);
 		lseek(fdOut, 0, SEEK_SET);
 		int ret = 1;
 		while (ret > 0)
 		{
-			ret = read(fdOut, buffer, 99);
+			ret = read(fdOut, buffer, bufSize - 1);
 			buffer[ret] = '\0';
 			cgi += buffer;
 		}
