@@ -91,7 +91,6 @@ int	Poll::send_socket(int i, const Server& srv)
 		buffer[bytesRead] = '\0';
 		std::string response = handleClient(srv, buffer);
 		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
-		close(this->_pollrequest[i].fd);
 	}
 	return i;
 }
