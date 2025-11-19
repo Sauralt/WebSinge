@@ -1,6 +1,6 @@
 #include "../include/Server.hpp"
 
-Server::Server() : _port(80)
+Server::Server() : _port(80), _clientBodyBufferSize(100)
 {}
 
 Server::~Server()
@@ -17,6 +17,7 @@ Server&	Server::operator=(const Server& copy)
 	this->_port = copy._port;
 	this->_root = copy._root;
 	this->_server_name = copy._server_name;
+	this->_clientBodyBufferSize = copy._clientBodyBufferSize;
 	return *this;
 }
 
@@ -25,6 +26,16 @@ int Server::getPort() const
 
 const std::string	&Server::getServerName() const
 { return _server_name; }
+
+void Server::setClientBodyBufferSize(int size)
+{
+    _clientBodyBufferSize = size;
+}
+
+int Server::getClientBodyBufferSize() const
+{
+    return _clientBodyBufferSize;
+}
 
 const std::string	&Server::getRoot() const
 { return _root; }

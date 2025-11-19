@@ -77,8 +77,9 @@ void	polling::add_socket(int sockfd)
 
 int	polling::send_socket(int i, const Server& srv)
 {
-	char buffer[101];
-	ssize_t bytesRead = recv(this->_pollrequest[i].fd, buffer, 100, 0);
+	int bufSize = srv.getClientBodyBufferSize();
+	char* buffer = new char[bufSize];
+	ssize_t bytesRead = recv(this->_pollrequest[i].fd, buffer, bufSize - 1, 0);
 	if (bytesRead <= 0)
 	{
 			close(this->_pollrequest[i].fd);

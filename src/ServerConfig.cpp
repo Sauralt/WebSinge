@@ -65,26 +65,27 @@ static std::string buildErrorPage(const std::string &statusCode, const std::stri
 
 std::string handleClient(const Server &srv, std::string buffer)
 {
-	HttpRequest req;
-	if (parseHttpMessage(buffer, req) != PARSE_OK)
-		return buildHttpResponse("400 Bad Request", "text/html",
-		buildErrorPage("400 Bad Request", "La requête est invalide."));
+    HttpRequest req;
+    if (parseHttpMessage(buffer, req) != PARSE_OK)
+        return buildHttpResponse("400 Bad Request", "text/html",
+        buildErrorPage("400 Bad Request", "La requête est invalide."));
 
-	std::string uri = req.getUri();
-	std::string fullPath = srv.getRoot() + uri;
-	if (fullPath.find(".py") != std::string::npos)
-	{
-		CGI temp;
-		CGI cgi(temp.ScriptFileName(buffer), req, srv);
-		std::string content = cgi.execCGI(buffer);
-		if (content.empty())
-			return buildHttpResponse("502 Bad Gateway", "text/html",
-			buildErrorPage("502 Bad Gateway", "Erreur lors de l'exécution du CGI."));
-		return buildHttpResponse("200 OK", "text/html", content);
-	}
-	std::string body = readFileContent(fullPath);
-	if (body.empty())
-		return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
-	return buildHttpResponse("200 OK", getMimeType(fullPath), body);
+    std::string uri = req.getUri();
+    std::string fullPath = srv.getRoot() + uri;
+
+    if (fullPath.find(".py") != std::string::npos)
+    {
+        CGI temp;
+        CGI cgi(temp.ScriptFileName(buffer), req, srv);
+        std::string content = cgi.execCGI(buffer, srv);
+        if (content.empty())
+            return buildHttpResponse("502 Bad Gateway", "text/html",
+            buildErrorPage("502 Bad Gateway", "Erreur lors de l'exécution du CGI."));
+        return buildHttpResponse("200 OK", "text/html", content);
+    }
+    std::string body = readFileContent(fullPath);
+    if (body.empty())
+        return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
+    return buildHttpResponse("200 OK", getMimeType(fullPath), body);
 }
 
