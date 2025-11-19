@@ -34,9 +34,8 @@ int main(int argc, char **argv)
 	// 	return 1;
 	// }
 	std::cout << "Server starting..." << std::endl;
-	polling poll;
-	for (int i = 0; i < config.getservNum(); i++)
-		poll.pollrequest(config.getServers()[i]);
+	Poll poll;
+	poll.pollrequest(config.getServers());
 	return 0;
 }
 

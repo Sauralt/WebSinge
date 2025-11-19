@@ -14,7 +14,7 @@ class Config
 	~Config();
 	Config(Config& copy);
 	Config&	operator=(Config& copy);
-	const	std::vector<Server> &getServers();
+	std::vector<Server> &getServers();
 	int	getservNum();
 	void addServer(const Server &srv);
 };
