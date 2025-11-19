@@ -10,6 +10,8 @@ flag2 = False
 n1 = form.getvalue('number1')
 op = form.getvalue('operator')
 n2 = form.getvalue('number2')
+if n1 == None or op == None or n2 == None:
+	print("<h2>Wrong parameters.<h2>")
 if n1[0] == '-':
 	flag1 = True
 	n1 = n1[1:]
@@ -18,14 +20,14 @@ if n2[0] == '-':
 	n2 = n2[1:]
 for i in n1:
 	if i.isdigit() == False:
-		print("<h2>Parameters not correct.<h2>")
+		print("<h2>Wrong parameters.<h2>")
 		exit(1)
 for i in n2:
 	if i.isdigit() == False:
-		print("<h2>Parameters not correct.<h2>")
+		print("<h2>Wrong parameters.<h2>")
 		exit(1)
 if len(op) > 1:
-	print("<h2>Parameters not correct.<h2>")
+	print("<h2>Wrong parameters.<h2>")
 	exit(1)
 newn1 = int(n1)
 newn2 = int(n2)
