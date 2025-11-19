@@ -85,12 +85,14 @@ int	Poll::send_socket(int i, const Server& srv)
 	{
 			close(this->_pollrequest[i].fd);
 			this->_pollrequest.erase(this->_pollrequest.begin() + i);
+			delete [] buffer;
 			i--;
 	}
 	else
 	{
 		buffer[bytesRead] = '\0';
-		std::string response = handleClient(srv, buffer);
+		std::string response = handleClient(srv, buffer, this->_pollrequest);
+		delete [] buffer;
 		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
 	}
 	return i;
@@ -118,6 +120,7 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 		pollfd firstpoll;
 		firstpoll.fd = sockfd;
 		firstpoll.events = POLLIN;
+		firstpoll.revents = 0;
 		this->_pollrequest.push_back(firstpoll);
 		this->_listeningsock.push_back(sockfd);
 		this->_listensrv[sockfd] = &(*srv);
@@ -126,7 +129,6 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 	while (gSignalStatus == 0)
 	{
 		poll(this->_pollrequest.data(), this->_pollrequest.size(), -1);
-
 		for (size_t i = 0; i < this->_pollrequest.size(); ++i)
 		{
 			if (this->_pollrequest[i].revents & POLLIN)
@@ -141,7 +143,5 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 		}
 	}
 	for (size_t i = 0; i < this->_pollrequest.size(); i++)
-	{
 		close(this->_pollrequest[i].fd);
-	}
 }

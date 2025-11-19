@@ -22,17 +22,6 @@ int main(int argc, char **argv)
 		std::cerr << "Erreur: aucun serveur défini dans la configuration." << std::endl;
 		return 1;
 	}
-	// const Server &srv = config.getServers()[0];
-	// int port = srv.getPort();
-	// std::cout << "Server: " << srv.getServerName()
-	// 			<< " listening on port " << port << std::endl;
-
-	// std::cout << "Root directory: " << srv.getRoot() << std::endl;
-	// if (port <= 0 || port > 65535)
-	// {
-	// 	std::cerr << "Port invalide: " << port << std::endl;
-	// 	return 1;
-	// }
 	std::cout << "Server starting..." << std::endl;
 	Poll poll;
 	poll.pollrequest(config.getServers());
