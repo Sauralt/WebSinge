@@ -47,10 +47,8 @@ std::string getMimeType(const std::string &path)
 		return "text/css";
 	if (path.rfind(".js") != std::string::npos)
 		return "application/javascript";
-	if (path.rfind(".png") != std::string::npos)
-		return "image/png";
 	if (path.rfind(".jpg") != std::string::npos || path.rfind(".jpeg") != std::string::npos)
-		return "image/jpeg";
+		return "assets/images/jpeg";
 	return "application/octet-stream";
 }
 

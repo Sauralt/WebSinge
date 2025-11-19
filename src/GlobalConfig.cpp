@@ -19,7 +19,7 @@ Config& Config::operator=(Config& copy)
 	return *this;
 }
 
-const std::vector<Server> &Config::getServers()
+std::vector<Server> &Config::getServers()
 { return _servers; }
 
 int	Config::getservNum()
