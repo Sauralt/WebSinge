@@ -46,6 +46,7 @@ static std::string	uploadFile(const std::string buffer)
 			getline(file, line);
 			while (getline(file, line))
 			{
+				
 				content += line + "\n";
 			}
 		}
@@ -119,3 +120,6 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 		return (buildHttpResponse("200 OK", "text/html", body));
 	return buildHttpResponse("200 OK", getMimeType(fullPath), body);
 }
+
+------WebKitFormBoundaryB6PFGtAU9aMajDRg--
+
