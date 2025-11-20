@@ -41,7 +41,7 @@ static std::string	uploadFile(const std::string buffer)
 		size_t equal = line.find("filename=");
 		if (equal != std::string::npos)
 		{
-			filename = "uploaded/" + line.substr(equal + 9);
+			filename = "uploaded/" + line.substr(equal + 10, line.size() - (equal + 12));
 			getline(file, line);
 			getline(file, line);
 			while (getline(file, line))
