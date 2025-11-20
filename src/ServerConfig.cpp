@@ -114,7 +114,6 @@ static std::string buildErrorPage(const std::string &statusCode, const std::stri
 
 std::string handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd)
 {
-	//std::cout << buffer;
 	HttpRequest req;
 	if (parseHttpMessage(buffer, req) != PARSE_OK)
 		return buildHttpResponse("400 Bad Request", "text/html",
