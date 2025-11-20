@@ -56,6 +56,22 @@ static std::string	uploadFile(const std::string buffer)
 	return "File uploaded successfully";
 }
 
+static std::string	deleteFile(const std::string buffer)
+{
+    size_t pos = buffer.find("delete=");
+    if (pos == std::string::npos)
+        return "No file specified for deletion.";
+    size_t end = buffer.find_first_of("& \r\n", pos + 7);
+    std::string filename = buffer.substr(pos + 7, end - (pos + 7));
+    if (filename.empty())
+        return "No file specified for deletion.";
+    filename = "uploaded/" + filename;
+    if (remove(filename.c_str()) != 0)
+        return "Error deleting file.";
+    else
+        return "File deleted successfully.";
+}
+
 static std::string readFileContent(const std::string &path, const std::string buffer)
 {
 	std::ifstream file(path.c_str());
@@ -63,6 +79,11 @@ static std::string readFileContent(const std::string &path, const std::string bu
 	{
 		if (path.find("/uploaded/") != std::string::npos)
 			return uploadFile(buffer);
+		else if (path.find("/delete/") != std::string::npos)
+		{
+			std::cout << "delete request detected\n";
+			return deleteFile(buffer);
+		}
 		return "";
 	}
 	std::ostringstream ss;
@@ -116,6 +137,8 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	if (body.empty() && req.getMethod() == "GET")
 		return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
 	if (fullPath.find("/uploaded/") != std::string::npos)
+		return (buildHttpResponse("200 OK", "text/html", body));
+	if (fullPath.find("/delete/") != std::string::npos)
 		return (buildHttpResponse("200 OK", "text/html", body));
 	return buildHttpResponse("200 OK", getMimeType(fullPath), body);
 }
