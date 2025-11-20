@@ -51,8 +51,7 @@ class HttpRequest
 		void clear();
 };
 
-	ParseStatus parseHttpMessage(const std::string &buffer, HttpRequest &req);
-	ParseStatus parseHttpBody(const std::string &buffer, HttpRequest &req);
+	ParseStatus parseHttpMessage(const std::string buffer, HttpRequest &req);
 
 #endif
 

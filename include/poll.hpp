@@ -13,6 +13,7 @@ class Poll
 		std::vector<int>			_listeningsock;
 		std::map<int, const Server*> _listensrv;
 		std::map<int, const Server*>	_clientsrv;
+		std::map<int, std::string>		_buffer;
 		int		socketfd(const Server& srv);
 		void	add_socket(int sockfd);
 		int		send_socket(int i, const Server& srv);

@@ -68,6 +68,7 @@ void	Poll::add_socket(int sockfd)
 	{
 		this->_clientsrv[connection] = this->_listensrv[sockfd];
 		fcntl(connection, F_SETFL, O_NONBLOCK);
+		this->_buffer[connection] = "";
 		pollfd newfd;
 		newfd.fd = connection;
 		newfd.events = POLLIN;
@@ -75,6 +76,28 @@ void	Poll::add_socket(int sockfd)
 		this->_pollrequest.push_back(newfd);
 	}
 }
+
+bool requestIsComplete(const std::string &buffer)
+{
+	size_t header_end = buffer.find("\r\n\r\n");
+	if (header_end == std::string::npos)
+		return false;
+	std::string headers = buffer.substr(0, header_end);
+	size_t pos = headers.find("Content-Length:");
+	if (pos != std::string::npos)
+	{
+		pos += strlen("Content-Length:");
+		while (pos < headers.size() && (headers[pos] == ' ' || headers[pos] == '\t'))
+			pos++;
+		int contentLength;
+		std::string str = headers.c_str() + pos;
+		std::istringstream(str) >> contentLength;
+		size_t total_needed = header_end + 4 + contentLength;
+		return buffer.size() >= total_needed;
+	}
+	return true;
+}
+
 
 int	Poll::send_socket(int i, const Server& srv)
 {
@@ -85,13 +108,20 @@ int	Poll::send_socket(int i, const Server& srv)
 	{
 			close(this->_pollrequest[i].fd);
 			this->_pollrequest.erase(this->_pollrequest.begin() + i);
+			delete [] buffer;
 			i--;
 	}
 	else
 	{
 		buffer[bytesRead] = '\0';
-		std::string response = handleClient(srv, buffer);
-		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
+		this->_buffer[this->_pollrequest[i].fd] += buffer;
+		if (requestIsComplete(this->_buffer[this->_pollrequest[i].fd]))
+		{
+			std::string response = handleClient(srv, this->_buffer[this->_pollrequest[i].fd], this->_pollrequest);
+			send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
+			this->_buffer.erase(this->_pollrequest[i].fd);
+		}
+		delete [] buffer;
 	}
 	return i;
 }
@@ -118,6 +148,7 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 		pollfd firstpoll;
 		firstpoll.fd = sockfd;
 		firstpoll.events = POLLIN;
+		firstpoll.revents = 0;
 		this->_pollrequest.push_back(firstpoll);
 		this->_listeningsock.push_back(sockfd);
 		this->_listensrv[sockfd] = &(*srv);
@@ -126,7 +157,6 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 	while (gSignalStatus == 0)
 	{
 		poll(this->_pollrequest.data(), this->_pollrequest.size(), -1);
-
 		for (size_t i = 0; i < this->_pollrequest.size(); ++i)
 		{
 			if (this->_pollrequest[i].revents & POLLIN)
@@ -141,7 +171,5 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 		}
 	}
 	for (size_t i = 0; i < this->_pollrequest.size(); i++)
-	{
 		close(this->_pollrequest[i].fd);
-	}
 }

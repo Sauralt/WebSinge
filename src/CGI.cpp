@@ -79,7 +79,7 @@ std::string	CGI::ScriptFileName(std::string request)
 	return res;
 }
 
-std::string	CGI::execCGI(std::string request, const Server &srv)
+std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pollfd>& _pollfd)
 {
 	pid_t	pid;
 	char**	env = this->MapToChar();
@@ -104,6 +104,8 @@ std::string	CGI::execCGI(std::string request, const Server &srv)
 		char * const * nil = NULL;
 		execve(this->_env["SCRIPT_FILENAME"].c_str(), nil, env);
 		write(STDOUT_FILENO, "500 Internal server error\r\n\r\n", 25);
+		for (size_t i = 0; i < _pollfd.size(); i++)
+			close(_pollfd[i].fd);
 	}
 	else
 	{
@@ -118,6 +120,7 @@ std::string	CGI::execCGI(std::string request, const Server &srv)
 			buffer[ret] = '\0';
 			cgi += buffer;
 		}
+		delete [] buffer;
 	}
 	dup2(Stdin, STDIN_FILENO);
 	dup2(Stdout, STDOUT_FILENO);

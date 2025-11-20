@@ -4,6 +4,6 @@
 # include "Server.hpp"
 # include "CGI.hpp"
 
-std::string	handleClient(const Server &srv, std::string buffer);
+std::string	handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd);
 
 #endif
