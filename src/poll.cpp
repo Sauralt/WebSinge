@@ -28,7 +28,7 @@ int	Poll::socketfd(const Server& srv)
 	if (sockfd == -1)
 	{
 		std::cout << "Failed to create socket." << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 
 	const int enable = 1;
@@ -43,13 +43,13 @@ int	Poll::socketfd(const Server& srv)
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0)
 	{
 		std::cerr << "Failed to bind to port :" << srv.getPort() << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 
 	if (listen(sockfd, 10) < 0)
 	{
 		std::cerr << "Failed to listen on socket." << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 	return sockfd;
 }
@@ -62,7 +62,7 @@ void	Poll::add_socket(int sockfd)
 	if (connection < 0)
 	{
 		std::cerr << "Failed to grab connection." << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 	else
 	{
