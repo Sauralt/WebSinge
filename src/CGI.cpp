@@ -63,7 +63,7 @@ char**	CGI::MapToChar()
 	{
 		std::string entry = it->first + "=" + it->second;
 		envp[i] = new char[entry.size() + 1];
-		envp[i] = strcpy(envp[i], (const char*)entry.c_str());
+		envp[i] = std::strcpy(envp[i], (const char*)entry.c_str());
 		++i;
 	}
 	envp[i] = NULL;
@@ -124,8 +124,8 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	}
 	dup2(Stdin, STDIN_FILENO);
 	dup2(Stdout, STDOUT_FILENO);
-	fclose(infile);
-	fclose(outfile);
+	std::fclose(infile);
+	std::fclose(outfile);
 	close(fdIn);
 	close(fdOut);
 	close(Stdin);

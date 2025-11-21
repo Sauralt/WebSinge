@@ -86,7 +86,7 @@ bool requestIsComplete(const std::string &buffer)
 	size_t pos = headers.find("Content-Length:");
 	if (pos != std::string::npos)
 	{
-		pos += strlen("Content-Length:");
+		pos += 16;
 		while (pos < headers.size() && (headers[pos] == ' ' || headers[pos] == '\t'))
 			pos++;
 		int contentLength;
@@ -164,9 +164,7 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 				if (this->listeningSock(this->_pollrequest[i].fd))
 					add_socket(this->_pollrequest[i].fd);
 				else
-				{
 					i = send_socket(i, *_clientsrv[this->_pollrequest[i].fd]);
-				}
 			}
 		}
 	}

@@ -140,7 +140,11 @@ ParseStatus parseHttpMessage(const std::string buffer, HttpRequest &req)
 			val.erase(val.size() - 1);
 		req.addHeader(key, val);
 		if (key == "Content-Length")
-			req.setContentLength(std::atoi(val.c_str()));
+		{
+			int len;
+			std::stringstream (val) >> len;
+			req.setContentLength(len);
+		}
 		else if (key == "Transfer-Encoding" && val == "chunked")
 			req.setChunked(true);
 	}

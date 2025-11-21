@@ -6,9 +6,9 @@
 class Location
 {
 	private:
-		std::string _path;
-		std::string _index_file;
-		bool _allow_upload;
+		std::string	_path;
+		std::string	_index_file;
+		bool		_allow_upload;
 
 	public:
 		Location();
