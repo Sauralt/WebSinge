@@ -35,13 +35,12 @@ static std::string	uploadFile(const std::string buffer)
 	std::string line;
 	std::string filename = "uploaded/ca a echoue clochard";
 	std::string content;
-	std::cout << buffer;
 	while (getline(file, line))
 	{
 		size_t equal = line.find("filename=");
 		if (equal != std::string::npos)
 		{
-			filename = "uploaded/" + line.substr(equal + 9);
+			filename = "uploaded/" + line.substr(equal + 10, line.size() - (equal + 12));
 			getline(file, line);
 			getline(file, line);
 			while (getline(file, line))
@@ -56,6 +55,22 @@ static std::string	uploadFile(const std::string buffer)
 	return "File uploaded successfully";
 }
 
+static std::string	deleteFile(const std::string buffer)
+{
+    size_t pos = buffer.find("delete=");
+    if (pos == std::string::npos)
+        return "No file specified for deletion.";
+    size_t end = buffer.find_first_of("& \r\n", pos + 7);
+    std::string filename = buffer.substr(pos + 7, end - (pos + 7));
+    if (filename.empty())
+        return "No file specified for deletion.";
+    filename = "uploaded/" + filename;
+    if (remove(filename.c_str()) != 0)
+        return "Error deleting file.";
+    else
+        return "File deleted successfully.";
+}
+
 static std::string readFileContent(const std::string &path, const std::string buffer)
 {
 	std::ifstream file(path.c_str());
@@ -63,6 +78,11 @@ static std::string readFileContent(const std::string &path, const std::string bu
 	{
 		if (path.find("/uploaded/") != std::string::npos)
 			return uploadFile(buffer);
+		else if (path.find("/delete/") != std::string::npos)
+		{
+			std::cout << "delete request detected\n";
+			return deleteFile(buffer);
+		}
 		return "";
 	}
 	std::ostringstream ss;
@@ -94,12 +114,13 @@ static std::string buildErrorPage(const std::string &statusCode, const std::stri
 
 std::string handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd)
 {
-	//std::cout << buffer;
 	HttpRequest req;
 	if (parseHttpMessage(buffer, req) != PARSE_OK)
 		return buildHttpResponse("400 Bad Request", "text/html",
 		buildErrorPage("400 Bad Request", "La requête est invalide."));
 	std::string uri = req.getUri();
+	if (uri == "/" || uri.empty())
+		uri = "/index.html";
 	std::string fullPath = srv.getRoot() + uri;
 
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
@@ -116,6 +137,8 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	if (body.empty() && req.getMethod() == "GET")
 		return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
 	if (fullPath.find("/uploaded/") != std::string::npos)
+		return (buildHttpResponse("200 OK", "text/html", body));
+	if (fullPath.find("/delete/") != std::string::npos)
 		return (buildHttpResponse("200 OK", "text/html", body));
 	return buildHttpResponse("200 OK", getMimeType(fullPath), body);
 }

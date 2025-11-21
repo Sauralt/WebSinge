@@ -33,8 +33,11 @@
     		<input type="file" name="fichier">
    			<button type="submit">Envoyer</button>
 		</form>
-			<h2>Delete un fichier (veuillez entrer le nom du fichier):</h2>
-			<input type = "text" name = "supprimer">  <br />
+		
+		<h2>Delete un fichier (veuillez entrer le nom du fichier):</h2>
+		<form action="/delete/" method="get">
+			<label class="supprimer" for="fichier"> fichier a supprimer</label>
+			<input type = "text" name = "delete">  <br />
 			<input type = "submit" value = "supprimer le fichier" /> <br />
 		</form>
 	</main>
