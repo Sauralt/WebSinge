@@ -127,6 +127,8 @@ bool parseConfigFile(const std::string &filename, Config &config)
 		}
 		else if (in_server)
 		{
+			int	value;
+			std::istringstream (val) >> value;
 			if (lkey == "host" || lkey == "server_name" || lkey == "root" || lkey == "listen" || lkey == "port")
 			{
 				if (server_keys.count(lkey))
@@ -138,7 +140,7 @@ bool parseConfigFile(const std::string &filename, Config &config)
 			}
 			if (lkey == "port" || lkey == "listen")
 			{
-				int port = std::atoi(val.c_str());
+				int port = value;
 				if (port <= 0) port = 80;
 				current_server.setPort(port);
 			}
@@ -157,7 +159,7 @@ bool parseConfigFile(const std::string &filename, Config &config)
 			}
 			else if (lkey == "client_body_buffer_size")
 			{
-				int size = std::atoi(val.c_str());
+				int size = value;
 				if (size <= 0)
 				{
 					std::cerr << "Erreur: valeur invalide pour client_body_buffer_size (ligne "
