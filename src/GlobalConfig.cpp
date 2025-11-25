@@ -134,6 +134,29 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				current_location.setIndexFile(val);
 			else if (lkey == "upload")
 				current_location.setAllowUpload(lower(val) == "true");
+			else if (lkey == "allow_methods")
+			{
+				std::vector<std::string> methods;
+				std::stringstream ss(val);
+				std::string method;
+
+				while (ss >> method)
+				{
+					methods.push_back(method);
+				}
+				for (size_t i = 0; i < methods.size(); i++)
+				{
+					std::string up = upper(methods[i]);
+					if (up != "GET" && up != "POST" && up != "DELETE")
+					{
+						std::cerr << "Erreur: méthode HTTP inconnue '" << methods[i]
+								<< "' (ligne " << lineno << ")" << std::endl;
+						return false;
+					}
+					methods[i] = up;
+				}
+				current_location.setAllowMethods(methods);
+			}
 		}
 		else if (in_server)
 		{
@@ -149,25 +172,25 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				server_keys.insert(lkey);
 			}
 			if (lkey == "port" || lkey == "listen")
-    		{
-        		for (size_t i = 0; i < val.size(); ++i)
-        		{
-            		if (!isdigit(val[i]))
-            		{
-                		std::cerr << "Erreur: le port doit être un nombre (ligne " << lineno << ")" << std::endl;
-                		return false;
-            		}
-        		}
-        		long port = std::strtol(val.c_str(), NULL, 10);
-        		if (port < 1 || port > 65535)
-        		{
-        		    std::cerr << "Erreur: le port doit être compris entre 1 et 65535 (ligne "
-        		              << lineno << ")" << std::endl;
-            		return false;
-        		}
+			{
+				for (size_t i = 0; i < val.size(); ++i)
+				{
+					if (!isdigit(val[i]))
+					{
+						std::cerr << "Erreur: le port doit être un nombre (ligne " << lineno << ")" << std::endl;
+						return false;
+					}
+				}
+				long port = std::strtol(val.c_str(), NULL, 10);
+				if (port < 1 || port > 65535)
+				{
+					std::cerr << "Erreur: le port doit être compris entre 1 et 65535 (ligne "
+								<< lineno << ")" << std::endl;
+					return false;
+				}
 
-        		current_server.setPort(static_cast<int>(port));
-    		}
+				current_server.setPort(static_cast<int>(port));
+			}
 			if (lkey == "port" || lkey == "listen")
 			{
 				int port = value;
@@ -197,29 +220,6 @@ bool parseConfigFile(const std::string &filename, Config &config)
 					return false;
 				}
 				current_server.setClientBodyBufferSize(size);
-			}
-			else if (lkey == "allow_methods")
-			{
-				std::vector<std::string> methods;
-				std::stringstream ss(val);
-				std::string method;
-
-				while (ss >> method)
-				{
-					methods.push_back(method);
-				}
-				for (size_t i = 0; i < methods.size(); i++)
-				{
-					std::string up = upper(methods[i]);
-					if (up != "GET" && up != "POST" && up != "DELETE")
-					{
-						std::cerr << "Erreur: méthode HTTP inconnue '" << methods[i]
-								<< "' (ligne " << lineno << ")" << std::endl;
-						return false;
-					}
-					methods[i] = up;
-				}
-				current_location.setAllowMethods(methods);
 			}
 		}
 	}

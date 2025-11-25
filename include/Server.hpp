@@ -31,6 +31,7 @@ class Server
 		void addLocation(const Location &loc);
 		void print() const;
 		const std::string& getHost() const { return _host; }
+		bool isAllowed(std::string name, std::string method) const;
 };
 
 #endif

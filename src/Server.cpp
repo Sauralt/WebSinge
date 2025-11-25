@@ -63,3 +63,16 @@ void	Server::print() const
 	for (size_t i = 0; i < _locations.size(); ++i)
 		_locations[i].print();
 }
+
+bool	Server::isAllowed(std::string name, std::string method) const
+{
+	for (size_t i = 0; i < this->_locations.size(); i++)
+	{
+		if (this->_locations[i].getPath() == name)
+		{
+			if (this->_locations[i].isMethodAllowed(method) == true)
+				return true;
+		}
+	}
+	return false;
+}

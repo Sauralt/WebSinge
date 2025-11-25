@@ -71,16 +71,21 @@ static std::string	deleteFile(const std::string buffer)
         return "File deleted successfully.";
 }
 
-static std::string readFileContent(const std::string &path, const std::string buffer)
+static std::string readFileContent(const std::string &path, const std::string buffer, const Server &srv)
 {
 	std::ifstream file(path.c_str());
 	if (!file.is_open())
 	{
 		if (path.find("/uploaded/") != std::string::npos)
+		{
+			if (srv.isAllowed("/uploaded", "POST") == false)
+				return ("405 method not allowed");
 			return uploadFile(buffer);
+		}
 		else if (path.find("/delete/") != std::string::npos)
 		{
-			std::cout << "delete request detected\n";
+			if (srv.isAllowed("/uploaded", "DELETE") == false)
+				return ("405 method not allowed");
 			return deleteFile(buffer);
 		}
 		return "";
@@ -133,7 +138,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 			buildErrorPage("502 Bad Gateway", "Erreur lors de l'exécution du CGI."));
 		return buildHttpResponse("200 OK", "text/html", content);
 	}
-	std::string body = readFileContent(fullPath, buffer);
+	std::string body = readFileContent(fullPath, buffer, srv);
 	if (body.empty() && req.getMethod() == "GET")
 		return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
 	if (fullPath.find("/uploaded/") != std::string::npos)
