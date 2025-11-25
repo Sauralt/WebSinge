@@ -134,6 +134,29 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				current_location.setIndexFile(val);
 			else if (lkey == "upload")
 				current_location.setAllowUpload(lower(val) == "true");
+			else if (lkey == "allow_methods")
+			{
+				std::vector<std::string> methods;
+				std::stringstream ss(val);
+				std::string method;
+
+				while (ss >> method)
+				{
+					methods.push_back(method);
+				}
+				for (size_t i = 0; i < methods.size(); i++)
+				{
+					std::string up = upper(methods[i]);
+					if (up != "GET" && up != "POST" && up != "DELETE")
+					{
+						std::cerr << "Erreur: méthode HTTP inconnue '" << methods[i]
+								<< "' (ligne " << lineno << ")" << std::endl;
+						return false;
+					}
+					methods[i] = up;
+				}
+				current_location.setAllowMethods(methods);
+			}
 		}
 		else if (in_server)
 		{
@@ -197,29 +220,6 @@ bool parseConfigFile(const std::string &filename, Config &config)
 					return false;
 				}
 				current_server.setClientBodyBufferSize(size);
-			}
-			else if (lkey == "allow_methods")
-			{
-				std::vector<std::string> methods;
-				std::stringstream ss(val);
-				std::string method;
-
-				while (ss >> method)
-				{
-					methods.push_back(method);
-				}
-				for (size_t i = 0; i < methods.size(); i++)
-				{
-					std::string up = upper(methods[i]);
-					if (up != "GET" && up != "POST" && up != "DELETE")
-					{
-						std::cerr << "Erreur: méthode HTTP inconnue '" << methods[i]
-								<< "' (ligne " << lineno << ")" << std::endl;
-						return false;
-					}
-					methods[i] = up;
-				}
-				current_location.setAllowMethods(methods);
 			}
 		}
 	}
