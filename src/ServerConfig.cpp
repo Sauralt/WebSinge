@@ -137,7 +137,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	if (body.empty() && req.getMethod() == "GET")
 		return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
 	if (fullPath.find("/uploaded/") != std::string::npos)
-		return (buildHttpResponse("200 OK", "text/html", body));
+		return (buildHttpResponse("201 OK", "text/html", body));
 	if (fullPath.find("/delete/") != std::string::npos)
 		return (buildHttpResponse("200 OK", "text/html", body));
 	return buildHttpResponse("200 OK", getMimeType(fullPath), body);

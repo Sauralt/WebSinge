@@ -8,11 +8,11 @@ class Server
 {
 	private:
 		int _port;
-		std::string _server_name;
-		std::string _root;
-    	std::string _host;
-		std::vector<Location> _locations;
-		int _clientBodyBufferSize;
+		std::string				_server_name;
+		std::string				_root;
+    	std::string				_host;
+		std::vector<Location>	_locations;
+		int						_clientBodyBufferSize;
 	public:
 		Server();
 		~Server();
