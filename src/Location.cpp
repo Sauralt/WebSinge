@@ -1,7 +1,6 @@
 #include "../include/Location.hpp"
 
-Location::Location() : _allow_upload(false)
-{}
+Location::Location() : _allow_upload(false), _allowGet(false), _allowPost(false), _allowDelete(false) {}
 
 Location::~Location()
 {}
@@ -44,4 +43,31 @@ void Location::print() const
 				<< ", upload=" << (_allow_upload ? "true" : "false") << std::endl;
 }
 
+void Location::setAllowMethods(const std::vector<std::string> &methods)
+{
+    _allowMethods = methods;
+    _allowGet = false;
+    _allowPost = false;
+    _allowDelete = false;
+
+    for (size_t i = 0; i < methods.size(); i++)
+    {
+        if (methods[i] == "GET") _allowGet = true;
+        else if (methods[i] == "POST") _allowPost = true;
+        else if (methods[i] == "DELETE") _allowDelete = true;
+    }
+}
+
+const std::vector<std::string> &Location::getAllowMethods() const
+{
+    return _allowMethods;
+}
+
+bool Location::isMethodAllowed(const std::string &m) const
+{
+    if (m == "GET") return _allowGet;
+    if (m == "POST") return _allowPost;
+    if (m == "DELETE") return _allowDelete;
+    return false;
+}
 
