@@ -8,6 +8,7 @@ class Server
 {
 	private:
 		int _port;
+		bool _upload_store;
 		std::string _server_name;
 		std::string _root;
     	std::string _host;
@@ -24,6 +25,8 @@ class Server
 		const std::string &getServerName() const;
 		const std::string &getRoot() const;
 		const std::vector<Location> &getLocations() const;
+		void setUploadStore(bool value) { _upload_store = value; }
+   		bool getUploadStore() const { return _upload_store; }
 		void setPort(int port);
     	void setHost(const std::string &h) { _host = h; }
 		void setServerName(const std::string &name);

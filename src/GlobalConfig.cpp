@@ -164,6 +164,18 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				if (port <= 0) port = 80;
 				current_server.setPort(port);
 			}
+			else if (lkey == "upload_store")
+			{
+				std::string v = lower(val);
+
+				if (v != "true" && v != "false")
+				{
+					std::cerr << "Erreur: upload_store doit être 'true' ou 'false' (ligne "
+							<< lineno << ")" << std::endl;
+					return false;
+				}
+				current_server.setUploadStore(v == "true");
+			}
 			else if (lkey == "server_name")
 				current_server.setServerName(val);
 			else if (lkey == "root") 

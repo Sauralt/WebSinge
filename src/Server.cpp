@@ -1,6 +1,6 @@
 #include "../include/Server.hpp"
 
-Server::Server() : _port(80), _clientBodyBufferSize(100)
+Server::Server() : _port(80), _upload_store(false), _clientBodyBufferSize(100)
 {}
 
 Server::~Server()
