@@ -63,7 +63,7 @@ char**	CGI::MapToChar()
 	{
 		std::string entry = it->first + "=" + it->second;
 		envp[i] = new char[entry.size() + 1];
-		envp[i] = strcpy(envp[i], (const char*)entry.c_str());
+		envp[i] = std::strcpy(envp[i], (const char*)entry.c_str());
 		++i;
 	}
 	envp[i] = NULL;
@@ -102,10 +102,16 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
 		char * const * nil = NULL;
-		execve(this->_env["SCRIPT_FILENAME"].c_str(), nil, env);
-		write(STDOUT_FILENO, "500 Internal server error\r\n\r\n", 25);
 		for (size_t i = 0; i < _pollfd.size(); i++)
 			close(_pollfd[i].fd);
+		std::fclose(infile);
+		std::fclose(outfile);
+		close(fdIn);
+		close(fdOut);
+		close(Stdin);
+		close(Stdout);
+		execve(this->_env["SCRIPT_FILENAME"].c_str(), nil, env);
+		write(STDOUT_FILENO, "500 Internal server error\r\n\r\n", 25);
 	}
 	else
 	{
@@ -124,8 +130,8 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	}
 	dup2(Stdin, STDIN_FILENO);
 	dup2(Stdout, STDOUT_FILENO);
-	fclose(infile);
-	fclose(outfile);
+	std::fclose(infile);
+	std::fclose(outfile);
 	close(fdIn);
 	close(fdOut);
 	close(Stdin);

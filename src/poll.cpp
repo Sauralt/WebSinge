@@ -28,7 +28,7 @@ int	Poll::socketfd(const Server& srv)
 	if (sockfd == -1)
 	{
 		std::cout << "Failed to create socket." << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 
 	const int enable = 1;
@@ -43,13 +43,13 @@ int	Poll::socketfd(const Server& srv)
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0)
 	{
 		std::cerr << "Failed to bind to port :" << srv.getPort() << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 
 	if (listen(sockfd, 10) < 0)
 	{
 		std::cerr << "Failed to listen on socket." << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 	return sockfd;
 }
@@ -62,7 +62,7 @@ void	Poll::add_socket(int sockfd)
 	if (connection < 0)
 	{
 		std::cerr << "Failed to grab connection." << std::endl;
-		exit(EXIT_FAILURE);
+		std::exit(EXIT_FAILURE);
 	}
 	else
 	{
@@ -86,7 +86,7 @@ bool requestIsComplete(const std::string &buffer)
 	size_t pos = headers.find("Content-Length:");
 	if (pos != std::string::npos)
 	{
-		pos += strlen("Content-Length:");
+		pos += 16;
 		while (pos < headers.size() && (headers[pos] == ' ' || headers[pos] == '\t'))
 			pos++;
 		int contentLength;
@@ -164,9 +164,7 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 				if (this->listeningSock(this->_pollrequest[i].fd))
 					add_socket(this->_pollrequest[i].fd);
 				else
-				{
 					i = send_socket(i, *_clientsrv[this->_pollrequest[i].fd]);
-				}
 			}
 		}
 	}

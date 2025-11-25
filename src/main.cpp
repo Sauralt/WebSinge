@@ -23,8 +23,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	std::cout << "Server starting..." << std::endl;
-	Poll poll;
-	poll.pollrequest(config.getServers());
+	Poll polling;
+	polling.pollrequest(config.getServers());
 	return 0;
 }
 
