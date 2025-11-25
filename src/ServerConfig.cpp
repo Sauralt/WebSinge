@@ -120,7 +120,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 		buildErrorPage("400 Bad Request", "La requête est invalide."));
 	std::string uri = req.getUri();
 	if (uri == "/" || uri.empty())
-		uri = "/index.html";
+        uri = "/index.html";
 	std::string fullPath = srv.getRoot() + uri;
 
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
