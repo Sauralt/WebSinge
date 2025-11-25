@@ -1,5 +1,6 @@
 #include "../include/GlobalConfig.hpp"
 #include "../include/header.hpp"
+#include "../include/Location.hpp"
 #include <set>
 
 Config::Config()
@@ -46,6 +47,15 @@ static std::string lower(const std::string &s)
 	for (size_t i = 0; i < r.size(); ++i) r[i] = std::tolower((unsigned char)r[i]);
 	return r;
 }
+
+static std::string upper(const std::string &s)
+{
+	std::string r = s;
+	for (size_t i = 0; i < r.size(); i++)
+		r[i] = std::toupper(r[i]);
+	return r;
+}
+
 
 bool parseConfigFile(const std::string &filename, Config &config)
 {
@@ -164,18 +174,6 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				if (port <= 0) port = 80;
 				current_server.setPort(port);
 			}
-			else if (lkey == "upload_store")
-			{
-				std::string v = lower(val);
-
-				if (v != "true" && v != "false")
-				{
-					std::cerr << "Erreur: upload_store doit être 'true' ou 'false' (ligne "
-							<< lineno << ")" << std::endl;
-					return false;
-				}
-				current_server.setUploadStore(v == "true");
-			}
 			else if (lkey == "server_name")
 				current_server.setServerName(val);
 			else if (lkey == "root") 
@@ -199,6 +197,29 @@ bool parseConfigFile(const std::string &filename, Config &config)
 					return false;
 				}
 				current_server.setClientBodyBufferSize(size);
+			}
+			else if (lkey == "allow_methods")
+			{
+				std::vector<std::string> methods;
+				std::stringstream ss(val);
+				std::string method;
+
+				while (ss >> method)
+				{
+					methods.push_back(method);
+				}
+				for (size_t i = 0; i < methods.size(); i++)
+				{
+					std::string up = upper(methods[i]);
+					if (up != "GET" && up != "POST" && up != "DELETE")
+					{
+						std::cerr << "Erreur: méthode HTTP inconnue '" << methods[i]
+								<< "' (ligne " << lineno << ")" << std::endl;
+						return false;
+					}
+					methods[i] = up;
+				}
+				current_location.setAllowMethods(methods);
 			}
 		}
 	}
