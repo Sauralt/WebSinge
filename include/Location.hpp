@@ -18,12 +18,12 @@ class Location
 		Location();
 		~Location();
 		Location(const Location& copy);
-    	void setAllowMethods(const std::vector<std::string> &methods);
-    	const std::vector<std::string> &getAllowMethods() const;
-    	bool isMethodAllowed(const std::string &m) const;
-		bool allowGet() const { return _allowGet; }
-    	bool allowPost() const { return _allowPost; }
-    	bool allowDelete() const { return _allowDelete; }
+		void setAllowMethods(const std::vector<std::string> &methods);
+		const std::vector<std::string> &getAllowMethods() const;
+		bool isMethodAllowed(const std::string &m) const;
+		bool allowGet() const;
+		bool allowPost() const;
+		bool allowDelete() const;
 		Location&	operator=(const Location& copy);
 		const std::string &getPath() const;
 		const std::string &getIndexFile() const;

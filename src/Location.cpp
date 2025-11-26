@@ -23,6 +23,15 @@ Location &Location::operator=(const Location& copy)
     return *this;
 }
 
+bool Location::allowGet() const
+{ return _allowGet; }
+
+bool Location::allowPost() const
+{ return _allowPost; }
+
+bool Location::allowDelete() const
+{ return _allowDelete; }
+
 const std::string &Location::getPath() const
 { return _path; }
 

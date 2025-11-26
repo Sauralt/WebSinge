@@ -26,12 +26,12 @@ class Server
 		const std::string &getRoot() const;
 		const std::vector<Location> &getLocations() const;
 		void setPort(int port);
-		void setHost(const std::string &h) { _host = h; }
+		void setHost(const std::string &h);
 		void setServerName(const std::string &name);
 		void setRoot(const std::string &root);
 		void addLocation(const Location &loc);
 		void print() const;
-		const std::string& getHost() const { return _host; }
+		const std::string& getHost() const;
 		bool isAllowed(std::string name, std::string method) const;
 };
 

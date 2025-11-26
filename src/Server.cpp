@@ -55,6 +55,9 @@ const std::vector<Location>	&Server::getLocations() const
 void	Server::setPort(int port)
 { _port = port; }
 
+void Server::setHost(const std::string &h)
+{ _host = h; }
+
 void	Server::setServerName(const std::string &name)
 { _server_name = name; }
 
@@ -72,6 +75,9 @@ void	Server::print() const
 	for (size_t i = 0; i < _locations.size(); ++i)
 		_locations[i].print();
 }
+
+const std::string& Server::getHost() const
+{ return _host; }
 
 bool	Server::isAllowed(std::string name, std::string method) const
 {
