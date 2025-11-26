@@ -203,6 +203,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	std::string body = readFileContent(fullPath, buffer, srv);
 	if (body.empty() && req.getMethod() == "GET")
 		return errorPage("Error 404", srv);
+	// ERREURS RETOURNEES AVEC 201 OK ET 200 OK
 	if (fullPath.find("/uploaded/") != std::string::npos)
 		return (buildHttpResponse("201 OK", "text/html", body));
 	if (fullPath.find("/delete/") != std::string::npos)

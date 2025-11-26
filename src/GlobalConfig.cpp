@@ -124,7 +124,7 @@ bool parseConfigFile(const std::string &filename, Config &config)
 		trim(key);
 		trim(val);
 		if (!val.empty() && val[val.size()-1] == ';')
-			val.erase(val.size()-1, 1);
+			val.erase(val.size() - 1, 1);
 		trim(val);
 		std::string lkey = lower(key);
 
