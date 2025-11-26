@@ -65,6 +65,7 @@ void	Server::setServerName(const std::string &name)
 void	Server::setRoot(const std::string &root)
 { _root = root; }
 
+
 void	Server::addLocation(const Location &loc)
 { _locations.push_back(loc); }
 
