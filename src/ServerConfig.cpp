@@ -16,19 +16,6 @@ static std::string buildHttpResponse(const std::string &status,
 	return ss.str();
 }
 
-static std::string wrapHtmlPage(const std::string &title, const std::string &content)
-{
-	std::ostringstream ss;
-	ss << "<!DOCTYPE html>\n<html>\n<head>\n";
-	ss << "<meta charset=\"utf-8\">\n";
-	ss << "<title>" << title << "</title>\n";
-	ss << "<link rel=\"stylesheet\" href=\"/assets/index.css\">\n";
-	ss << "</head>\n<body>\n";
-	ss << content;
-	ss << "\n</body>\n</html>";
-	return ss.str();
-}
-
 static std::string	uploadFile(const std::string buffer)
 {
 	std::istringstream file(buffer);
@@ -71,16 +58,21 @@ static std::string	deleteFile(const std::string buffer)
         return "File deleted successfully.";
 }
 
-static std::string readFileContent(const std::string &path, const std::string buffer)
+static std::string readFileContent(const std::string &path, const std::string buffer, const Server &srv)
 {
 	std::ifstream file(path.c_str());
 	if (!file.is_open())
 	{
 		if (path.find("/uploaded/") != std::string::npos)
+		{
+			if (srv.isAllowed("/uploaded", "POST") == false)
+				return ("405 method not allowed");
 			return uploadFile(buffer);
+		}
 		else if (path.find("/delete/") != std::string::npos)
 		{
-			std::cout << "delete request detected\n";
+			if (srv.isAllowed("/uploaded", "DELETE") == false)
+				return ("405 method not allowed");
 			return deleteFile(buffer);
 		}
 		return "";
@@ -103,6 +95,19 @@ std::string getMimeType(const std::string &path)
 	return "application/octet-stream";
 }
 
+static std::string wrapHtmlPage(const std::string &title, const std::string &content)
+{
+	std::ostringstream ss;
+	ss << "<!DOCTYPE html>\n<html>\n<head>\n";
+	ss << "<meta charset=\"utf-8\">\n";
+	ss << "<title>" << title << "</title>\n";
+	ss << "<link rel=\"stylesheet\" href=\"/assets/index.css\">\n";
+	ss << "</head>\n<body>\n";
+	ss << content;
+	ss << "\n</body>\n</html>";
+	return ss.str();
+}
+
 static std::string buildErrorPage(const std::string &statusCode, const std::string &message)
 {
 	std::ostringstream ss;
@@ -112,15 +117,78 @@ static std::string buildErrorPage(const std::string &statusCode, const std::stri
 	return wrapHtmlPage(statusCode, ss.str());
 }
 
+static	std::string errorPage(const std::string &statusCode, const Server &srv)
+{
+	std::stringstream s(statusCode.substr(6));
+	int code;
+	s >> code;
+
+	std::map<std::string, std::string> Errors = srv.getError();
+	std::string fullpath = srv.getRoot() + Errors[statusCode];
+	std::ifstream file (fullpath.c_str());
+	std::string line;
+	std::string res;
+
+	if (!file.is_open())
+	{
+		switch (code)
+		{
+			case 400:
+				return buildHttpResponse("400 Bad Request", "text/html",
+				buildErrorPage("400 Bad Request", "Invalid syntaxe"));
+			case 403:
+				return buildHttpResponse("403 Forbidden", "text/html",
+				buildErrorPage("403 Forbidden", "Forbidden access"));
+			case 404:
+				return buildHttpResponse("404 Not Found", "text/html",
+				buildErrorPage("404 Not Found", "Ressource not found"));
+			case 405:
+				return buildHttpResponse("405 Method Not Allowed", "text/html",
+				buildErrorPage("405 Method Not Allowed", "Can not use this functionality, see the config file"));
+			case 500:
+				return buildHttpResponse("500 Internal Server Error", "text/html",
+				buildErrorPage("500 Internal Server Error", "Error while treating request"));
+			case 501:
+				return buildHttpResponse("501 Not Implemented", "text/html",
+				buildErrorPage("501 Not Implemented", "Do not support this request type"));
+			case 502:
+				return buildHttpResponse("502 Bad Gateway", "text/html",
+				buildErrorPage("502 Bad Gateway", "Invalid response"));
+		}
+	}
+	while (getline(file, line))
+	{
+		res += line;
+		res += '\n';
+	}
+	switch (code)
+	{
+		case 400:
+			return buildHttpResponse("400 Bad request", "text/html", res);
+		case 403:
+			return buildHttpResponse("403 Forbidden", "text/html", res);
+		case 404:
+			return buildHttpResponse("404 Not Found", "text/html", res);
+		case 405:
+			return buildHttpResponse("405 Method Not Allowed", "text/html", res);
+		case 500:
+			return buildHttpResponse("500 Internal Server Error", "text/html", res);
+		case 501:
+			return buildHttpResponse("501 Not Implemented", "text/html", res);
+		case 502:
+			return buildHttpResponse("502 Bad Gateway", "text/html", res);
+	}
+	return buildHttpResponse("500 Internal Server Error", "text/html", res);
+}
+
 std::string handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd)
 {
 	HttpRequest req;
 	if (parseHttpMessage(buffer, req) != PARSE_OK)
-		return buildHttpResponse("400 Bad Request", "text/html",
-		buildErrorPage("400 Bad Request", "La requête est invalide."));
+		return errorPage("Error 400", srv);
 	std::string uri = req.getUri();
 	if (uri == "/" || uri.empty())
-        uri = "/index.html";
+		uri = "/index.html";
 	std::string fullPath = srv.getRoot() + uri;
 
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
@@ -129,15 +197,15 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 		CGI cgi(temp.ScriptFileName(buffer), req, srv);
 		std::string content = cgi.execCGI(buffer, srv, _pollfd);
 		if (content.empty())
-			return buildHttpResponse("502 Bad Gateway", "text/html",
-			buildErrorPage("502 Bad Gateway", "Erreur lors de l'exécution du CGI."));
+			return errorPage("Error 502", srv);
 		return buildHttpResponse("200 OK", "text/html", content);
 	}
-	std::string body = readFileContent(fullPath, buffer);
+	std::string body = readFileContent(fullPath, buffer, srv);
 	if (body.empty() && req.getMethod() == "GET")
-		return buildHttpResponse("404 Not Found", "text/html", buildErrorPage("404 Not Found", "La ressource demandée est introuvable."));
+		return errorPage("Error 404", srv);
+	// ERREURS RETOURNEES AVEC 201 OK ET 200 OK
 	if (fullPath.find("/uploaded/") != std::string::npos)
-		return (buildHttpResponse("200 OK", "text/html", body));
+		return (buildHttpResponse("201 OK", "text/html", body));
 	if (fullPath.find("/delete/") != std::string::npos)
 		return (buildHttpResponse("200 OK", "text/html", body));
 	return buildHttpResponse("200 OK", getMimeType(fullPath), body);

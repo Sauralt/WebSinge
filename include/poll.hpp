@@ -9,9 +9,9 @@ extern int	gSignalStatus;
 class Poll
 {
 	private:
-		std::vector<pollfd>			_pollrequest;
-		std::vector<int>			_listeningsock;
-		std::map<int, const Server*> _listensrv;
+		std::vector<pollfd>				_pollrequest;
+		std::vector<int>				_listeningsock;
+		std::map<int, const Server*>	_listensrv;
 		std::map<int, const Server*>	_clientsrv;
 		std::map<int, std::string>		_buffer;
 		int		socketfd(const Server& srv);

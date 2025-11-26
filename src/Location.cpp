@@ -10,6 +10,7 @@ Location::Location(const Location& copy)
 	*this = copy;
 }
 
+
 Location &Location::operator=(const Location& copy)
 {
 	this->_allow_upload = copy._allow_upload;
@@ -22,6 +23,15 @@ Location &Location::operator=(const Location& copy)
     this->_autoindex = copy._autoindex;
 	return *this;
 }
+
+bool Location::allowGet() const
+{ return _allowGet; }
+
+bool Location::allowPost() const
+{ return _allowPost; }
+
+bool Location::allowDelete() const
+{ return _allowDelete; }
 
 const std::string &Location::getPath() const
 { return _path; }
@@ -50,22 +60,24 @@ void Location::print() const
 
 void Location::setAllowMethods(const std::vector<std::string> &methods)
 {
-    _allowMethods = methods;
-    _allowGet = false;
-    _allowPost = false;
-    _allowDelete = false;
+	_allowMethods = methods;
+	_allowGet = false;
+	_allowPost = false;
+	_allowDelete = false;
 
-    for (size_t i = 0; i < methods.size(); i++)
-    {
-        if (methods[i] == "GET") _allowGet = true;
-        else if (methods[i] == "POST") _allowPost = true;
-        else if (methods[i] == "DELETE") _allowDelete = true;
-    }
+	for (size_t i = 0; i < methods.size(); i++)
+	{
+		if (methods[i] == "GET") _allowGet = true;
+		else if (methods[i] == "POST") _allowPost = true;
+		else if (methods[i] == "DELETE") _allowDelete = true;
+	}
+	if (_allowGet == false && _allowPost == false && _allowDelete == false)
+		_allowGet = true;
 }
 
 const std::vector<std::string> &Location::getAllowMethods() const
 {
-    return _allowMethods;
+	return _allowMethods;
 }
 
 bool Location::isMethodAllowed(const std::string &m) const
