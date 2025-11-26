@@ -28,6 +28,7 @@ class Server
     	void setHost(const std::string &h) { _host = h; }
 		void setServerName(const std::string &name);
 		void setRoot(const std::string &root);
+		bool getAutoindex() const;
 		void addLocation(const Location &loc);
 		void print() const;
 		const std::string& getHost() const { return _host; }

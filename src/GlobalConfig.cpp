@@ -131,7 +131,16 @@ bool parseConfigFile(const std::string &filename, Config &config)
 		if (in_location)
 		{
 			if (lkey == "index")
-				current_location.setIndexFile(val);
+			{
+				std::stringstream ss(val);
+				std::string file;
+				std::vector<std::string> index_files;
+
+				while (ss >> file)
+					index_files.push_back(file);
+
+				current_location.setIndexFiles(index_files);
+			}
 			else if (lkey == "upload")
 				current_location.setAllowUpload(lower(val) == "true");
 			else if (lkey == "allow_methods")
@@ -156,6 +165,17 @@ bool parseConfigFile(const std::string &filename, Config &config)
 					methods[i] = up;
 				}
 				current_location.setAllowMethods(methods);
+			}
+			else if (lkey == "autoindex")
+			{
+				std::string v = lower(val);
+				if (v != "on" && v != "off")
+				{
+					std::cerr << "Erreur: autoindex doit être 'on' ou 'off' (ligne "
+							<< lineno << ")" << std::endl;
+					return false;
+				}
+				current_location.setAutoIndex(v == "on");
 			}
 		}
 		else if (in_server)
