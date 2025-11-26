@@ -70,11 +70,13 @@ void Location::setAllowMethods(const std::vector<std::string> &methods)
 		else if (methods[i] == "POST") _allowPost = true;
 		else if (methods[i] == "DELETE") _allowDelete = true;
 	}
+	if (_allowGet == false && _allowPost == false && _allowDelete == false)
+		_allowGet = true;
 }
 
 const std::vector<std::string> &Location::getAllowMethods() const
 {
-    return _allowMethods;
+	return _allowMethods;
 }
 
 bool Location::isMethodAllowed(const std::string &m) const

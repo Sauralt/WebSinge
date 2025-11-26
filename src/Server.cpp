@@ -1,15 +1,15 @@
 #include "../include/Server.hpp"
 
-Server::Server() : _port(80), _clientBodyBufferSize(100)
+Server::Server() : _port(80), _clientBodyBufferSize(100), _root("./site")
 {
-	this->_errorPages["Error 400"] = "/site/error/400.html";
-	this->_errorPages["Error 403"] = "/site/error/403.html";
-	this->_errorPages["Error 404"] = "/site/error/404.html";
-	this->_errorPages["Error 405"] = "/site/error/405.html";
-	this->_errorPages["Error 500"] = "/site/error/500.html";
-	this->_errorPages["Error 501"] = "/site/error/501.html";
-	this->_errorPages["Error 502"] = "/site/error/502.html";
-	this->_errorPages["Error 505"] = "/site/error/505.html";
+	this->_errorPages["Error 400"] = "/error/400.html";
+	this->_errorPages["Error 403"] = "/error/403.html";
+	this->_errorPages["Error 404"] = "/error/404.html";
+	this->_errorPages["Error 405"] = "/error/405.html";
+	this->_errorPages["Error 500"] = "/error/500.html";
+	this->_errorPages["Error 501"] = "/error/501.html";
+	this->_errorPages["Error 502"] = "/error/502.html";
+	this->_errorPages["Error 505"] = "/error/505.html";
 }
 
 Server::~Server()
@@ -27,6 +27,7 @@ Server&	Server::operator=(const Server& copy)
 	this->_root = copy._root;
 	this->_server_name = copy._server_name;
 	this->_clientBodyBufferSize = copy._clientBodyBufferSize;
+	this->_errorPages = copy._errorPages;
 	return *this;
 }
 
@@ -75,6 +76,9 @@ void	Server::print() const
 	for (size_t i = 0; i < _locations.size(); ++i)
 		_locations[i].print();
 }
+
+std::map<std::string, std::string>	Server::getError() const
+{ return this->_errorPages; }
 
 const std::string& Server::getHost() const
 { return _host; }

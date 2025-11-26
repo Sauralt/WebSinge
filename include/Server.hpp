@@ -13,7 +13,7 @@ class Server
 		std::string				_root;
 		std::string				_host;
 		std::vector<Location>	_locations;
-		std::map<std::string, std::string> _errorPages;
+		std::map<std::string, std::string>	_errorPages;
 	public:
 		Server();
 		~Server();
@@ -33,6 +33,7 @@ class Server
 		void print() const;
 		const std::string& getHost() const;
 		bool isAllowed(std::string name, std::string method) const;
+		std::map<std::string, std::string> getError() const;
 };
 
 #endif
