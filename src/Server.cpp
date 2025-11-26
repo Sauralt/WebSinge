@@ -1,7 +1,16 @@
 #include "../include/Server.hpp"
 
 Server::Server() : _port(80), _clientBodyBufferSize(100)
-{}
+{
+	this->_errorPages["Error 400"] = "/site/error/400.html";
+	this->_errorPages["Error 403"] = "/site/error/403.html";
+	this->_errorPages["Error 404"] = "/site/error/404.html";
+	this->_errorPages["Error 405"] = "/site/error/405.html";
+	this->_errorPages["Error 500"] = "/site/error/500.html";
+	this->_errorPages["Error 501"] = "/site/error/501.html";
+	this->_errorPages["Error 502"] = "/site/error/502.html";
+	this->_errorPages["Error 505"] = "/site/error/505.html";
+}
 
 Server::~Server()
 {}
