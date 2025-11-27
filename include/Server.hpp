@@ -7,12 +7,12 @@
 class Server
 {
 	private:
-		int						_port;
-		int						_clientBodyBufferSize;
-		std::string				_server_name;
-		std::string				_root;
-		std::string				_host;
-		std::vector<Location>	_locations;
+		int									_port;
+		int									_clientBodyBufferSize;
+		std::string							_server_name;
+		std::string							_root;
+		std::string							_host;
+		std::vector<Location>				_locations;
 		std::map<std::string, std::string>	_errorPages;
 	public:
 		Server();
@@ -29,7 +29,6 @@ class Server
 		void setHost(const std::string &h);
 		void setServerName(const std::string &name);
 		void setRoot(const std::string &root);
-		// bool getAutoindex() const;
 		void addLocation(const Location &loc);
 		void setErrorPage(int code, const std::string &path);
 		void print() const;

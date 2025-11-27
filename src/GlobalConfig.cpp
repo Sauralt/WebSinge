@@ -143,8 +143,6 @@ bool parseConfigFile(const std::string &filename, Config &config)
 
 				current_location.setIndexFiles(index_files);
 			}
-			else if (lkey == "upload")
-				current_location.setAllowUpload(lower(val) == "true");
 			else if (lkey == "allow_methods")
 			{
 				std::vector<std::string> methods;
@@ -187,6 +185,8 @@ bool parseConfigFile(const std::string &filename, Config &config)
                 }
                 current_location.setAutoIndex(v == "on");
             }
+			else if (lkey == "uploaded_store")
+				current_location.setUploadedStore(val);
 		}
         else if (in_server)
         {
