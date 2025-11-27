@@ -1,6 +1,7 @@
 #ifndef HEADER_HPP
 # define HEADER_HPP
 # include <sys/socket.h>
+# include <sys/wait.h>
 # include <netinet/in.h>
 # include <cstdlib>
 # include <iostream>
@@ -17,7 +18,6 @@
 # include <cctype>
 # include <fcntl.h>
 # include <map>
-# include <sys/wait.h>
 
 std::string HtmlToString(const char* filename);
 
