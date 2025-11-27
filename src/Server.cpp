@@ -1,6 +1,6 @@
 #include "../include/Server.hpp"
 
-Server::Server() : _port(80), _clientBodyBufferSize(100), _root("./site")
+Server::Server() : _port(80), _clientBodyBufferSize(100), _root("./site") 
 {
 	this->_errorPages["Error 400"] = "/error/400.html";
 	this->_errorPages["Error 403"] = "/error/403.html";
@@ -68,6 +68,14 @@ void	Server::setRoot(const std::string &root)
 
 void	Server::addLocation(const Location &loc)
 { _locations.push_back(loc); }
+
+void Server::setErrorPage(int code, const std::string &path)
+{
+	std::ostringstream ss;
+	ss << "Error " << code;
+	_errorPages[ss.str()] = path;
+	
+}
 
 void	Server::print() const
 {

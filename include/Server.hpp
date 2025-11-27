@@ -29,8 +29,9 @@ class Server
 		void setHost(const std::string &h);
 		void setServerName(const std::string &name);
 		void setRoot(const std::string &root);
-		bool getAutoindex() const;
+		// bool getAutoindex() const;
 		void addLocation(const Location &loc);
+		void setErrorPage(int code, const std::string &path);
 		void print() const;
 		const std::string& getHost() const;
 		bool isAllowed(std::string name, std::string method) const;

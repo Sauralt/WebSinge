@@ -21,6 +21,7 @@ Location &Location::operator=(const Location& copy)
     this->_allowPost = copy._allowPost;
     this->_allowDelete = copy._allowDelete;
     this->_autoindex = copy._autoindex;
+    this->_uploaded_store = copy._uploaded_store;
 	return *this;
 }
 
@@ -96,6 +97,16 @@ void Location::setAutoIndex(bool value)
 bool Location::getAutoIndex() const 
 { 
     return _autoindex; 
+}
+
+void Location::setUploadedStore(const std::string &dir)
+{
+    _uploaded_store = dir;
+}
+
+const std::string &Location::getUploadedStore() const
+{
+    return _uploaded_store;
 }
 
 void Location::setIndexFiles(const std::vector<std::string> &indexes)
