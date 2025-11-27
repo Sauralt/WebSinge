@@ -72,51 +72,56 @@ bool parseConfigFile(const std::string &filename, Config &config)
 	std::string line;
 	size_t lineno = 0;
 
-	std::set<std::string> location_keys;
+    std::set<std::string> server_keys;
+    std::set<std::string> location_keys;
 
-	while (std::getline(file, line))
-	{
-		++lineno;
-		trim(line);
-		if (line.empty() || line[0] == '#')
-			continue;
-		static std::set<std::string> server_keys;
-		if (line.find("server") == 0 && line.find("{") != std::string::npos)
-		{
-			in_server = true;
-			in_location = false;
-			current_server = Server();
-			server_keys.clear();
-			continue;
+    while (std::getline(file, line))
+    {
+        ++lineno;
+        trim(line);
+        if (line.empty() || line[0] == '#')
+            continue;
+        static std::set<std::string> server_keys;
+        if (line.find("server") == 0 && line.find("{") != std::string::npos)
+        {
+            in_server = true;
+            in_location = false;
+            current_server = Server();
+            server_keys.clear();
+            server_keys.clear();
+            continue;
+        }
+        if (line == "}")
+        {
+            if (in_location)
+            {
+                current_server.addLocation(current_location);
+                in_location = false;
+                location_keys.clear();
+            }
+            else if (in_server)
+            {
+                config.addServer(current_server);
+                in_server = false;
+            }
+            continue;
 		}
-		if (line == "}")
-		{
-			if (in_location)
-			{
-				current_server.addLocation(current_location);
-				in_location = false;
-			}
-			else if (in_server)
-			{
-				config.addServer(current_server);
-				in_server = false;
-			}
-			continue;
-		}
-		if (line.find("location") == 0)
-		{
-			size_t pos_brace = line.find('{');
-			std::string path = line.substr(8, pos_brace - 8);
-			trim(path);
-			if (!path.empty() && path[path.size()-1] == ';')
-				path.erase(path.size()-1, 1);
-			trim(path);
-
-			current_location = Location();
-			current_location.setPath(path);
-			in_location = true;
-			continue;
-		}
+        if (line.find("location") == 0)
+        {
+            size_t pos_brace = line.find('{');
+        	std::string path = line.substr(8, pos_brace - 8);
+            trim(path);
+            if (!path.empty() && path[path.size()-1] == ';')
+                path.erase(path.size()-1, 1);
+            trim(path);
+ 
+            current_location = Location();
+            current_location.setPath(path);
+            in_location = true;
+            in_location = true;
+            location_keys.clear();
+            continue;
+        }
 		size_t pos = line.find(' ');
 		if (pos == std::string::npos)
 			continue;
