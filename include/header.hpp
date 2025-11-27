@@ -18,6 +18,7 @@
 # include <cctype>
 # include <fcntl.h>
 # include <map>
+#include <set>
 
 std::string HtmlToString(const char* filename);
 

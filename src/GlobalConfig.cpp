@@ -1,7 +1,6 @@
 #include "../include/GlobalConfig.hpp"
 #include "../include/header.hpp"
 #include "../include/Location.hpp"
-#include <set>
 
 Config::Config()
 {_servNum = 0;}
