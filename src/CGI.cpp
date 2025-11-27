@@ -85,7 +85,7 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	char**	env = this->MapToChar();
 	std::string	cgi;
 	if (!env)
-		return "500 Internal server error\r\n\r\n";
+		return "";
 	int		Stdin = dup(STDIN_FILENO);
 	int		Stdout = dup(STDOUT_FILENO);
 	FILE	*infile = tmpfile();
