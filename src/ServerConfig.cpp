@@ -200,8 +200,33 @@ static	std::string errorPage(const std::string &statusCode, const Server &srv)
 	return buildHttpResponse("500 Internal Server Error", "text/html", res);
 }
 
+static std::string	isDir(std::string &fullPath, const Server &srv)
+{
+	bool autoindex = false;
+	for (size_t i = 0; i < srv.getLocations().size(); i++)
+	{
+		if (fullPath.find(srv.getLocations()[i].getPath()) != std::string::npos)
+			autoindex = srv.getLocations()[i].getAutoIndex();
+	}
+	if (autoindex == false)
+		return errorPage("Error 403", srv);
+	std::string fulldir;
+	DIR *dir = opendir(fullPath.c_str());
+	if (!dir)
+		return errorPage("Error 403", srv);
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string name = entry->d_name;
+		fulldir += name + "\n";
+	}
+	closedir(dir);
+	return buildHttpResponse("200 OK", "text/html", fulldir);
+}
+
 std::string handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd)
 {
+	struct stat s;
 	HttpRequest req;
 	if (parseHttpMessage(buffer, req) != PARSE_OK)
 		return errorPage("Error 400", srv);
@@ -209,9 +234,13 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	if (uri == "/" || uri.empty())
 		uri = "/index.html";
 	std::string fullPath = srv.getRoot() + uri;
-
 	if (req.getMethod() != "GET" && req.getMethod() != "POST" && req.getMethod() != "DELETE")
 		return errorPage("Error 501", srv);
+	if (stat(fullPath.c_str(), &s) == 0)
+	{
+		if (s.st_mode & S_IFDIR)
+			return isDir(fullPath, srv);
+	}
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
 	{
 		CGI temp;
