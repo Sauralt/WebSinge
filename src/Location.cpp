@@ -1,6 +1,6 @@
 #include "../include/Location.hpp"
 
-Location::Location() : _allowGet(false), _allowPost(false), _allowDelete(false), _uploaded_store("uploaded/")
+Location::Location() : _allowGet(false), _allowPost(false), _allowDelete(false), _autoindex(false), _uploaded_store("uploaded/")
 {}
 
 Location::~Location()
