@@ -73,6 +73,8 @@ bool parseConfigFile(const std::string &filename, Config &config)
 	std::string line;
 	size_t lineno = 0;
 
+	std::set<std::string> location_keys;
+
 	while (std::getline(file, line))
 	{
 		++lineno;
@@ -167,50 +169,76 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				current_location.setAllowMethods(methods);
 			}
 			else if (lkey == "autoindex")
-			{
-				std::string v = lower(val);
-				if (v != "on" && v != "off")
-				{
-					std::cerr << "Erreur: autoindex doit être 'on' ou 'off' (ligne "
-							<< lineno << ")" << std::endl;
-					return false;
-				}
-				current_location.setAutoIndex(v == "on");
-			}
-		}
-		else if (in_server)
-		{
-			int	value;
-			std::istringstream (val) >> value;
-			if (lkey == "host" || lkey == "server_name" || lkey == "root" || lkey == "listen" || lkey == "port")
-			{
-				if (server_keys.count(lkey))
-				{
-					std::cerr << "Erreur: clé '" << lkey << "' dupliquée dans le bloc server (ligne " << lineno << ")" << std::endl;
-					return false;
-				}
-				server_keys.insert(lkey);
-			}
-			if (lkey == "port" || lkey == "listen")
-			{
-				for (size_t i = 0; i < val.size(); ++i)
-				{
-					if (!isdigit(val[i]))
-					{
-						std::cerr << "Erreur: le port doit être un nombre (ligne " << lineno << ")" << std::endl;
-						return false;
-					}
-				}
-				long port = std::strtol(val.c_str(), NULL, 10);
-				if (port < 1 || port > 65535)
-				{
-					std::cerr << "Erreur: le port doit être compris entre 1 et 65535 (ligne "
-								<< lineno << ")" << std::endl;
-					return false;
-				}
+            {
+                if (location_keys.count("autoindex"))
+                {
+                    std::cerr << "Erreur: directive 'autoindex' dupliquée dans la même location (ligne "
+                              << lineno << ")" << std::endl;
+                    return false;
+                }
+                location_keys.insert("autoindex");
 
-				current_server.setPort(static_cast<int>(port));
+                std::string v = lower(val);
+                if (v != "on" && v != "off")
+                {
+                    std::cerr << "Erreur: autoindex doit être 'on' ou 'off' (ligne "
+                            << lineno << ")" << std::endl;
+                    return false;
+                }
+                current_location.setAutoIndex(v == "on");
+            }
+		}
+        else if (in_server)
+        {
+            int	value;
+            std::istringstream (val) >> value;
+
+            if (lkey == "host" || lkey == "server_name" || lkey == "root" || lkey == "listen" || lkey == "port")
+            {
+                if (server_keys.count(lkey))
+                {
+                    std::cerr << "Erreur: clé '" << lkey << "' dupliquée dans le bloc server (ligne " << lineno << ")" << std::endl;
+                    return false;
+                }
+                server_keys.insert(lkey);
+            }
+			else if (lkey == "error_page")
+			{
+				std::istringstream iss(val);
+				int code;
+				std::string path;
+				if (!(iss >> code >> path))
+				{
+					std::cerr << "Erreur: directive 'error_page' invalide (ligne " << lineno << ")" << std::endl;
+					return false;
+				}
+				if (code < 400 || code > 599)
+				{
+					std::cerr << "Erreur: code d'erreur invalide pour 'error_page' (ligne " << lineno << ")" << std::endl;
+					return false;
+				}
+				current_server.setErrorPage(code, path);
+				continue;
 			}
+            else if (lkey == "port" || lkey == "listen")
+            {
+                for (size_t i = 0; i < val.size(); ++i)
+                {
+                    if (!isdigit(val[i]))
+                    {
+                        std::cerr << "Erreur: le port doit être un nombre (ligne " << lineno << ")" << std::endl;
+                        return false;
+                    }
+                }
+                long port = std::strtol(val.c_str(), NULL, 10);
+                if (port < 1 || port > 65535)
+                {
+                    std::cerr << "Erreur: le port doit être compris entre 1 et 65535 (ligne "
+                                << lineno << ")" << std::endl;
+                    return false;
+                }
+                current_server.setPort(static_cast<int>(port));
+            }
 			if (lkey == "port" || lkey == "listen")
 			{
 				int port = value;
