@@ -74,8 +74,9 @@ std::string	CGI::ScriptFileName(std::string request)
 {
 	std::string	res;
 
-	for (std::string::iterator it = request.begin() + 4; (*it) != '?'; it++)
+	for (std::string::iterator it = request.begin() + 4; (*it) != 'y' && (*it - 1) != 'p' && (*it - 2) != '.'; it++)
 		res.push_back((*it));
+	res.push_back('y');
 	return res;
 }
 

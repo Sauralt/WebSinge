@@ -58,9 +58,7 @@ void Location::setAllowMethods(const std::vector<std::string> &methods)
 }
 
 const std::vector<std::string> &Location::getAllowMethods() const
-{
-	return _allowMethods;
-}
+{ return _allowMethods; }
 
 bool Location::isMethodAllowed(const std::string &m) const
 {
@@ -71,31 +69,31 @@ bool Location::isMethodAllowed(const std::string &m) const
 }
 
 void Location::setAutoIndex(bool value) 
-{ 
-	_autoindex = value; 
-}
+{ _autoindex = value; }
 
 bool Location::getAutoIndex() const 
-{ 
-	return _autoindex; 
-}
+{ return _autoindex; }
 
 void Location::setUploadedStore(const std::string &dir)
-{
-	_uploaded_store = dir;
-}
+{ _uploaded_store = dir; }
 
 const std::string &Location::getUploadedStore() const
-{
-    return _uploaded_store;
-}
+{ return _uploaded_store; }
 
 void Location::setIndexFiles(const std::vector<std::string> &indexes)
-{
-        _index_file = indexes;
-}
+{ _index_file = indexes; }
 
 const std::vector<std::string>& Location::getIndexFiles() const
-{
-    return _index_file;
-}
+{ return _index_file; }
+
+void	Location::setNewPath(std::string str)
+{ this->_newPath = str; }
+
+void	Location::setReturnValue(std::string str)
+{ this->_returnValue = str; }
+
+std::string	Location::getReturnValue() const
+{ return this->_returnValue; }
+
+std::string	Location::getNewPath() const
+{ return this->_newPath; }
