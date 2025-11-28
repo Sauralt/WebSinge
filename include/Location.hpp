@@ -6,15 +6,14 @@
 class Location
 {
 	private:
-		std::string	_path;
-		std::vector<std::string> _index_file;
-		bool		_allow_upload;
-		std::vector<std::string> _allowMethods;
-		bool _allowGet;
-    	bool _allowPost;
-    	bool _allowDelete;
-		bool _autoindex;
-		std::string _uploaded_store;
+		std::string					_path;
+		std::vector<std::string>	_index_file;
+		std::vector<std::string>	_allowMethods;
+		bool						_allowGet;
+    	bool						_allowPost;
+    	bool						_allowDelete;
+		bool						_autoindex;
+		std::string					_uploaded_store;
 		
 	public:
 		Location();
@@ -29,14 +28,12 @@ class Location
 		Location&	operator=(const Location& copy);
 		const std::string &getPath() const;
 		void setIndexFiles(const std::vector<std::string> &indexes);
-		 const std::vector<std::string>& getIndexFiles() const;
+		const std::vector<std::string>& getIndexFiles() const;
 		void setAutoIndex(bool _autoindex);
-    	bool getAutoIndex() const;
-		bool getAllowUpload() const;
+		bool getAutoIndex() const;
 		void setUploadedStore(const std::string &dir);
-        const std::string &getUploadedStore() const;
+		const std::string &getUploadedStore() const;
 		void setPath(const std::string &path);
-		void setAllowUpload(bool allow);
 		void print() const;
 };
 
