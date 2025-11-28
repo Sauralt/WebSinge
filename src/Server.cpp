@@ -77,15 +77,6 @@ void Server::setErrorPage(int code, const std::string &path)
 	
 }
 
-void	Server::print() const
-{
-	std::cout	<< "Server: " << _server_name
-				<< " on port " << _port
-				<< " root=" << _root << std::endl;
-	for (size_t i = 0; i < _locations.size(); ++i)
-		_locations[i].print();
-}
-
 std::map<std::string, std::string>	Server::getError() const
 { return this->_errorPages; }
 
@@ -94,6 +85,8 @@ const std::string& Server::getHost() const
 
 bool	Server::isAllowed(std::string name, std::string method) const
 {
+	if (name == "temp")
+		return true;
 	for (size_t i = 0; i < this->_locations.size(); i++)
 	{
 		if (this->_locations[i].getPath() == name)

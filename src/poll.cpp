@@ -69,7 +69,7 @@ void	Poll::add_socket(int sockfd)
 		this->_clientsrv[connection] = this->_listensrv[sockfd];
 		fcntl(connection, F_SETFL, O_NONBLOCK);
 		this->_buffer[connection] = "";
-		std::cout << "reading request from socket : " << connection << "\n";
+		std::cout << "reading request from socket " << connection << " in server connected to port " << this->_clientsrv[connection]->getPort() << ".\n";
 		pollfd newfd;
 		newfd.fd = connection;
 		newfd.events = POLLIN;
@@ -119,7 +119,7 @@ int	Poll::send_socket(int i, const Server& srv)
 		if (requestIsComplete(this->_buffer[this->_pollrequest[i].fd]))
 		{
 			std::string response = handleClient(srv, this->_buffer[this->_pollrequest[i].fd], this->_pollrequest);
-			std::cout << "sending response for socket : " << this->_pollrequest[i].fd << "\n";
+			std::cout << "sending response for socket " << this->_pollrequest[i].fd << " in server connected to port " << this->_clientsrv[this->_pollrequest[i].fd]->getPort() << ".\n";
 			send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
 			this->_buffer.erase(this->_pollrequest[i].fd);
 			this->_buffer.clear();

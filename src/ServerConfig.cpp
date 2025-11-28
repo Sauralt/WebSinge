@@ -30,7 +30,7 @@ static std::string	uploadFile(const std::string buffer, const Server &srv)
 		return "Error 403";
 	std::istringstream file(buffer);
 	std::string line;
-	std::string filename = "uploaded/ca a echoue clochard";
+	std::string filename;
 	std::string content;
 	while (getline(file, line))
 	{
@@ -38,6 +38,8 @@ static std::string	uploadFile(const std::string buffer, const Server &srv)
 		if (equal != std::string::npos)
 		{
 			filename = path + line.substr(equal + 10, line.size() - (equal + 12));
+			if (filename == "uploaded/")
+				return "No file to upload.";
 			getline(file, line);
 			getline(file, line);
 			while (getline(file, line))
@@ -72,19 +74,19 @@ static std::string	deleteFile(const std::string buffer, const Server &srv)
 		return "Error 403";
 	filename = path + filename;
 	if (remove(filename.c_str()) != 0)
-		return "Error 500";
+		return "Error 404";
 	else
 		return "File deleted successfully.";
 }
 
-static std::string readFileContent(const std::string &path, const std::string buffer, const Server &srv)
+static std::string readFileContent(const std::string &path, const std::string buffer, const Server &srv, HttpRequest &req)
 {
 	std::ifstream file(path.c_str());
 	if (!file.is_open())
 	{
 		if (path.find("/uploaded/") != std::string::npos)
 		{
-			if (srv.isAllowed("/uploaded", "POST") == false)
+			if (srv.isAllowed("/uploaded", "POST") == false || req.getMethod() != "POST")
 				return ("Error 405");
 			return uploadFile(buffer, srv);
 		}
@@ -96,6 +98,14 @@ static std::string readFileContent(const std::string &path, const std::string bu
 		}
 		return "";
 	}
+	std::string temp = "temp";
+	for (size_t i = 0; i < srv.getLocations().size(); i++)
+	{
+		if (srv.getLocations()[i].getPath().find(path) != std::string::npos)
+			temp = srv.getLocations()[i].getPath();
+	}
+	if (srv.isAllowed(temp, req.getMethod()) == false)
+		return "Error 405";
 	std::ostringstream ss;
 	ss << file.rdbuf();
 	return ss.str();
@@ -236,22 +246,22 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	std::string fullPath = srv.getRoot() + uri;
 	if (req.getMethod() != "GET" && req.getMethod() != "POST" && req.getMethod() != "DELETE")
 		return errorPage("Error 501", srv);
-    if (stat(fullPath.c_str(), &s) == 0)
-    {
-        if (s.st_mode & S_IFDIR)
-        {
-            std::string indexPath = fullPath;
-            if (indexPath.empty() || indexPath[indexPath.size() - 1] != '/')
-                indexPath += '/';
-            indexPath += "index.html";
-            if (access(indexPath.c_str(), F_OK) != -1)
-            {
-                std::string body = readFileContent(indexPath, buffer, srv);
-                if (body.empty())
-                    return errorPage("Error 500", srv);
-                return buildHttpResponse("200 OK", getMimeType(indexPath), body);
-            }
-            return isDir(fullPath, srv);
+	if (stat(fullPath.c_str(), &s) == 0)
+	{
+		if (s.st_mode & S_IFDIR)
+		{
+			std::string indexPath = fullPath;
+			if (indexPath.empty() || indexPath[indexPath.size() - 1] != '/')
+				indexPath += '/';
+			indexPath += "index.html";
+			if (access(indexPath.c_str(), F_OK) != -1)
+			{
+				std::string body = readFileContent(indexPath, buffer, srv, req);
+				if (body.empty())
+					return errorPage("Error 500", srv);
+				return buildHttpResponse("200 OK", getMimeType(indexPath), body);
+			}
+			return isDir(fullPath, srv);
 		}
 	}
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
@@ -263,11 +273,11 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 			return errorPage("Error 502", srv);
 		return buildHttpResponse("200 OK", "text/html", content);
 	}
-	std::string body = readFileContent(fullPath, buffer, srv);
+	std::string body = readFileContent(fullPath, buffer, srv, req);
 	if (body.empty() && req.getMethod() == "GET")
 		return errorPage("Error 404", srv);
 	if (fullPath.find("/uploaded/") != std::string::npos && body.find("Error") == std::string::npos)
-		return (buildHttpResponse("201 OK", "text/html", body));
+		return (buildHttpResponse("201 Created", "text/html", body));
 	else if (fullPath.find("/uploaded/") != std::string::npos)
 		return errorPage(body, srv);
 	if (fullPath.find("/delete/") != std::string::npos && body.find("Error") == std::string::npos)

@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 		std::cerr << "Erreur: aucun serveur défini dans la configuration." << std::endl;
 		return 1;
 	}
-	std::cout << "Server starting..." << std::endl;
+	std::cout << "Server(s) starting..." << std::endl;
 	Poll polling;
 	polling.pollrequest(config.getServers());
 	return 0;

@@ -16,12 +16,12 @@ Location &Location::operator=(const Location& copy)
 {
 	this->_index_file = copy._index_file;
 	this->_path = copy._path;
-    this->_allowMethods = copy._allowMethods;
-    this->_allowGet = copy._allowGet;
-    this->_allowPost = copy._allowPost;
-    this->_allowDelete = copy._allowDelete;
-    this->_autoindex = copy._autoindex;
-    this->_uploaded_store = copy._uploaded_store;
+	this->_allowMethods = copy._allowMethods;
+	this->_allowGet = copy._allowGet;
+	this->_allowPost = copy._allowPost;
+	this->_allowDelete = copy._allowDelete;
+	this->_autoindex = copy._autoindex;
+	this->_uploaded_store = copy._uploaded_store;
 	return *this;
 }
 
@@ -39,19 +39,6 @@ const std::string &Location::getPath() const
 
 void Location::setPath(const std::string &path)
 { _path = path; }
-
-void Location::print() const
-{
-	// std::cout << "Location: path=" << _path << ", upload=" << (_allow_upload ? "true" : "false") << std::endl
-    //             << ", index=[";
-                for (size_t i = 0; i < _index_file.size(); i++)
-                {
-                    std::cout << _index_file[i];
-                    if (i + 1 < _index_file.size())
-                        std::cout << ", ";
-                }
-                std::cout << "]" << std::endl;
-}
 
 void Location::setAllowMethods(const std::vector<std::string> &methods)
 {

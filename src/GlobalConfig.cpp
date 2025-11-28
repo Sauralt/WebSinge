@@ -72,56 +72,53 @@ bool parseConfigFile(const std::string &filename, Config &config)
 	std::string line;
 	size_t lineno = 0;
 
-    std::set<std::string> server_keys;
-    std::set<std::string> location_keys;
+	std::set<std::string> server_keys;
+	std::set<std::string> location_keys;
 
-    while (std::getline(file, line))
-    {
-        ++lineno;
-        trim(line);
-        if (line.empty() || line[0] == '#')
-            continue;
-        static std::set<std::string> server_keys;
-        if (line.find("server") == 0 && line.find("{") != std::string::npos)
-        {
-            in_server = true;
-            in_location = false;
-            current_server = Server();
-            server_keys.clear();
-            server_keys.clear();
-            continue;
-        }
-        if (line == "}")
-        {
-            if (in_location)
-            {
-                current_server.addLocation(current_location);
-                in_location = false;
-                location_keys.clear();
-            }
-            else if (in_server)
-            {
-                config.addServer(current_server);
-                in_server = false;
-            }
-            continue;
+	while (std::getline(file, line))
+	{
+		++lineno;
+		trim(line);
+		if (line.empty() || line[0] == '#')
+			continue;
+		if (line.find("server") == 0 && line.find("{") != std::string::npos)
+		{
+			in_server = true;
+			in_location = false;
+			current_server = Server();
+			server_keys.clear();
+			continue;
 		}
-        if (line.find("location") == 0)
-        {
-            size_t pos_brace = line.find('{');
-        	std::string path = line.substr(8, pos_brace - 8);
-            trim(path);
-            if (!path.empty() && path[path.size()-1] == ';')
-                path.erase(path.size()-1, 1);
-            trim(path);
- 
-            current_location = Location();
-            current_location.setPath(path);
-            in_location = true;
-            in_location = true;
-            location_keys.clear();
-            continue;
-        }
+		if (line == "}")
+		{
+			if (in_location)
+			{
+				current_server.addLocation(current_location);
+				in_location = false;
+				location_keys.clear();
+			}
+			else if (in_server)
+			{
+				config.addServer(current_server);
+				in_server = false;
+			}
+			continue;
+		}
+		if (line.find("location") == 0)
+		{
+			size_t pos_brace = line.find('{');
+			std::string path = line.substr(8, pos_brace - 8);
+			trim(path);
+			if (!path.empty() && path[path.size()-1] == ';')
+				path.erase(path.size()-1, 1);
+			trim(path);
+
+			current_location = Location();
+			current_location.setPath(path);
+			in_location = true;
+			location_keys.clear();
+			continue;
+		}
 		size_t pos = line.find(' ');
 		if (pos == std::string::npos)
 			continue;
@@ -171,41 +168,41 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				current_location.setAllowMethods(methods);
 			}
 			else if (lkey == "autoindex")
-            {
-                if (location_keys.count("autoindex"))
-                {
-                    std::cerr << "Erreur: directive 'autoindex' dupliquée dans la même location (ligne "
-                              << lineno << ")" << std::endl;
-                    return false;
-                }
-                location_keys.insert("autoindex");
+			{
+				if (location_keys.count("autoindex"))
+				{
+					std::cerr << "Erreur: directive 'autoindex' dupliquée dans la même location (ligne "
+								<< lineno << ")" << std::endl;
+					return false;
+				}
+				location_keys.insert("autoindex");
 
-                std::string v = lower(val);
-                if (v != "on" && v != "off")
-                {
-                    std::cerr << "Erreur: autoindex doit être 'on' ou 'off' (ligne "
-                            << lineno << ")" << std::endl;
-                    return false;
-                }
-                current_location.setAutoIndex(v == "on");
-            }
+				std::string v = lower(val);
+				if (v != "on" && v != "off")
+				{
+					std::cerr << "Erreur: autoindex doit être 'on' ou 'off' (ligne "
+							<< lineno << ")" << std::endl;
+					return false;
+				}
+				current_location.setAutoIndex(v == "on");
+			}
 			else if (lkey == "uploaded_store")
 				current_location.setUploadedStore(val);
 		}
-        else if (in_server)
-        {
-            int	value;
-            std::istringstream (val) >> value;
+		else if (in_server)
+		{
+			int	value;
+			std::istringstream (val) >> value;
 
-            if (lkey == "host" || lkey == "server_name" || lkey == "root" || lkey == "listen" || lkey == "port")
-            {
-                if (server_keys.count(lkey))
-                {
-                    std::cerr << "Erreur: clé '" << lkey << "' dupliquée dans le bloc server (ligne " << lineno << ")" << std::endl;
-                    return false;
-                }
-                server_keys.insert(lkey);
-            }
+			if (lkey == "host" || lkey == "server_name" || lkey == "root" || lkey == "listen" || lkey == "port")
+			{
+				if (server_keys.count(lkey))
+				{
+					std::cerr << "Erreur: clé '" << lkey << "' dupliquée dans le bloc server (ligne " << lineno << ")" << std::endl;
+					return false;
+				}
+				server_keys.insert(lkey);
+			}
 			else if (lkey == "error_page")
 			{
 				std::istringstream iss(val);
@@ -224,34 +221,28 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				current_server.setErrorPage(code, path);
 				continue;
 			}
-            else if (lkey == "port" || lkey == "listen")
-            {
-                for (size_t i = 0; i < val.size(); ++i)
-                {
-                    if (!isdigit(val[i]))
-                    {
-                        std::cerr << "Erreur: le port doit être un nombre (ligne " << lineno << ")" << std::endl;
-                        return false;
-                    }
-                }
-                long port = std::strtol(val.c_str(), NULL, 10);
-                if (port < 1 || port > 65535)
-                {
-                    std::cerr << "Erreur: le port doit être compris entre 1 et 65535 (ligne "
-                                << lineno << ")" << std::endl;
-                    return false;
-                }
-                current_server.setPort(static_cast<int>(port));
-            }
 			if (lkey == "port" || lkey == "listen")
 			{
-				int port = value;
-				if (port <= 0) port = 80;
-				current_server.setPort(port);
+				for (size_t i = 0; i < val.size(); ++i)
+				{
+					if (!isdigit(val[i]))
+					{
+						std::cerr << "Erreur: le port doit être un nombre (ligne " << lineno << ")" << std::endl;
+						return false;
+					}
+				}
+				long port = std::strtol(val.c_str(), NULL, 10);
+				if (port < 1 || port > 65535)
+				{
+					std::cerr << "Erreur: le port doit être compris entre 1 et 65535 (ligne "
+								<< lineno << ")" << std::endl;
+					return false;
+				}
+				current_server.setPort(static_cast<int>(port));
 			}
 			else if (lkey == "server_name")
 				current_server.setServerName(val);
-			else if (lkey == "root") 
+			else if (lkey == "root")
 			{
 				current_server.setRoot(val);
 			}

@@ -34,7 +34,6 @@ class Location
 		void setUploadedStore(const std::string &dir);
 		const std::string &getUploadedStore() const;
 		void setPath(const std::string &path);
-		void print() const;
 };
 
 #endif
