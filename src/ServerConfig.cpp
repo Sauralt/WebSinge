@@ -236,10 +236,23 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	std::string fullPath = srv.getRoot() + uri;
 	if (req.getMethod() != "GET" && req.getMethod() != "POST" && req.getMethod() != "DELETE")
 		return errorPage("Error 501", srv);
-	if (stat(fullPath.c_str(), &s) == 0)
-	{
-		if (s.st_mode & S_IFDIR)
-			return isDir(fullPath, srv);
+    if (stat(fullPath.c_str(), &s) == 0)
+    {
+        if (s.st_mode & S_IFDIR)
+        {
+            std::string indexPath = fullPath;
+            if (indexPath.empty() || indexPath[indexPath.size() - 1] != '/')
+                indexPath += '/';
+            indexPath += "index.html";
+            if (access(indexPath.c_str(), F_OK) != -1)
+            {
+                std::string body = readFileContent(indexPath, buffer, srv);
+                if (body.empty())
+                    return errorPage("Error 500", srv);
+                return buildHttpResponse("200 OK", getMimeType(indexPath), body);
+            }
+            return isDir(fullPath, srv);
+		}
 	}
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
 	{
