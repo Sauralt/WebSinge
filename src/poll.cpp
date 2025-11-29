@@ -155,6 +155,7 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 		this->_pollrequest.push_back(firstpoll);
 		this->_listeningsock.push_back(sockfd);
 		this->_listensrv[sockfd] = &(*srv);
+		fcntl(sockfd, F_SETFL, O_NONBLOCK);
 	}
 
 	while (gSignalStatus == 0)
