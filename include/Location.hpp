@@ -17,6 +17,7 @@ class Location
 		std::string					_returnValue;
 		std::string					_newPath;
 		std::string					_body;
+		std::string					_ext;
 	public:
 		Location();
 		~Location();
@@ -39,9 +40,11 @@ class Location
 		void		setReturnValue(std::string str);
 		void		setNewPath(std::string str);
 		void		setBody();
+		void		setExt(std::string str);
 		std::string	getReturnValue() const;
 		std::string	getNewPath() const;
 		std::string	getBody() const;
+		std::string	getExt() const;
 };
 
 #endif

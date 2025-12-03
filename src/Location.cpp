@@ -28,6 +28,7 @@ Location &Location::operator=(const Location& copy)
 	this->_uploaded_store = copy._uploaded_store;
 	this->_newPath = copy._newPath;
 	this->_returnValue = copy._returnValue;
+	this->_ext = copy._ext;
 	return *this;
 }
 
@@ -111,6 +112,9 @@ void	Location::setBody()
 		_body += line;
 }
 
+void	Location::setExt(std::string str)
+{ _ext = str; }
+
 std::string	Location::getReturnValue() const
 { return this->_returnValue; }
 
@@ -119,3 +123,6 @@ std::string	Location::getNewPath() const
 
 std::string	Location::getBody() const
 { return this->_body; }
+
+std::string	Location::getExt() const
+{ return _ext; }

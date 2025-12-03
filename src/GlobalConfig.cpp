@@ -193,6 +193,8 @@ bool parseConfigFile(const std::string &filename, Config &config)
 				current_location.setReturnValue(val.substr(0, 3));
 				current_location.setNewPath("site/" + current_location.getPath() + val.substr(4));
 			}
+			else if (lkey == "cgi")
+				current_location.setExt(val);
 		}
 		else if (in_server)
 		{

@@ -130,7 +130,7 @@ std::string getMimeType(const std::string &path)
 		return "application/javascript";
 	if (path.rfind(".jpg") != std::string::npos || path.rfind(".jpeg") != std::string::npos)
 		return "assets/images/jpeg";
-	return "application/octet-stream";
+	return "text/html";
 }
 
 static std::string wrapHtmlPage(const std::string &title, const std::string &content)
@@ -284,7 +284,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 			return isDir(fullPath, srv, loc);
 		}
 	}
-	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
+	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1 && loc.getExt() == ".py")
 	{
 		CGI temp;
 		CGI cgi(temp.ScriptFileName(buffer), req, srv);
