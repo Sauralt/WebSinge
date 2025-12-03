@@ -116,6 +116,7 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	}
 	else
 	{
+		waitpid(-1, NULL, 0);
 		int bufSize = srv.getClientBodyBufferSize();
 		char* buffer = new char[bufSize];
 		lseek(fdOut, 0, SEEK_SET);

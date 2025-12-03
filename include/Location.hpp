@@ -16,6 +16,7 @@ class Location
 		std::string					_uploaded_store;
 		std::string					_returnValue;
 		std::string					_newPath;
+		std::string					_body;
 	public:
 		Location();
 		~Location();
@@ -37,8 +38,10 @@ class Location
 		void setPath(const std::string &path);
 		void		setReturnValue(std::string str);
 		void		setNewPath(std::string str);
+		void		setBody();
 		std::string	getReturnValue() const;
 		std::string	getNewPath() const;
+		std::string	getBody() const;
 };
 
 #endif

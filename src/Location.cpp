@@ -1,7 +1,11 @@
 #include "../include/Location.hpp"
 
-Location::Location() : _allowGet(false), _allowPost(false), _allowDelete(false), _autoindex(false), _uploaded_store("uploaded/")
-{}
+Location::Location() : _allowGet(false), _allowPost(false), _allowDelete(false)
+{
+	_uploaded_store = "uploaded/";
+	_autoindex = false;
+	_returnValue = "0";
+}
 
 Location::~Location()
 {}
@@ -22,6 +26,8 @@ Location &Location::operator=(const Location& copy)
 	this->_allowDelete = copy._allowDelete;
 	this->_autoindex = copy._autoindex;
 	this->_uploaded_store = copy._uploaded_store;
+	this->_newPath = copy._newPath;
+	this->_returnValue = copy._returnValue;
 	return *this;
 }
 
@@ -92,8 +98,24 @@ void	Location::setNewPath(std::string str)
 void	Location::setReturnValue(std::string str)
 { this->_returnValue = str; }
 
+void	Location::setBody()
+{
+	std::string line;
+	std::ifstream file (_newPath.c_str());
+	if (!file)
+	{
+		_body += "Error 404";
+		return ;
+	}
+	while (getline(file, line))
+		_body += line;
+}
+
 std::string	Location::getReturnValue() const
 { return this->_returnValue; }
 
 std::string	Location::getNewPath() const
 { return this->_newPath; }
+
+std::string	Location::getBody() const
+{ return this->_body; }

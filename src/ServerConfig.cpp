@@ -5,8 +5,17 @@
 
 static std::string buildHttpResponse(const std::string &status,
 										const std::string &contentType,
-										const std::string &body)
+										const std::string &body,
+										const Location &loc)
 {
+	if (status == "200 OK" || status == "201 Created")
+	{
+		if (loc.getReturnValue() != "0")
+		{
+			Location temp;
+			return buildHttpResponse(loc.getReturnValue(), "text/html", loc.getBody(), temp);
+		}
+	}
 	std::ostringstream ss;
 	ss << "HTTP/1.1 " << status << "\r\n";
 	ss << "Content-Type: " << contentType << "\r\n";
@@ -146,7 +155,7 @@ static std::string buildErrorPage(const std::string &statusCode, const std::stri
 	return wrapHtmlPage(statusCode, ss.str());
 }
 
-static	std::string errorPage(const std::string &statusCode, const Server &srv)
+static	std::string errorPage(const std::string &statusCode, const Server &srv, const Location &loc)
 {
 	std::stringstream s(statusCode.substr(6));
 	int code;
@@ -164,25 +173,25 @@ static	std::string errorPage(const std::string &statusCode, const Server &srv)
 		{
 			case 400:
 				return buildHttpResponse("400 Bad Request", "text/html",
-				buildErrorPage("400 Bad Request", "Invalid syntaxe"));
+				buildErrorPage("400 Bad Request", "Invalid syntaxe"), loc);
 			case 403:
 				return buildHttpResponse("403 Forbidden", "text/html",
-				buildErrorPage("403 Forbidden", "Forbidden access"));
+				buildErrorPage("403 Forbidden", "Forbidden access"), loc);
 			case 404:
 				return buildHttpResponse("404 Not Found", "text/html",
-				buildErrorPage("404 Not Found", "Ressource not found"));
+				buildErrorPage("404 Not Found", "Ressource not found"), loc);
 			case 405:
 				return buildHttpResponse("405 Method Not Allowed", "text/html",
-				buildErrorPage("405 Method Not Allowed", "Can not use this functionality, see the config file"));
+				buildErrorPage("405 Method Not Allowed", "Can not use this functionality, see the config file"), loc);
 			case 500:
 				return buildHttpResponse("500 Internal Server Error", "text/html",
-				buildErrorPage("500 Internal Server Error", "Error while treating request"));
+				buildErrorPage("500 Internal Server Error", "Error while treating request"), loc);
 			case 501:
 				return buildHttpResponse("501 Not Implemented", "text/html",
-				buildErrorPage("501 Not Implemented", "Do not support this request type"));
+				buildErrorPage("501 Not Implemented", "Do not support this request type"), loc);
 			case 502:
 				return buildHttpResponse("502 Bad Gateway", "text/html",
-				buildErrorPage("502 Bad Gateway", "Invalid response"));
+				buildErrorPage("502 Bad Gateway", "Invalid response"), loc);
 		}
 	}
 	while (getline(file, line))
@@ -193,24 +202,24 @@ static	std::string errorPage(const std::string &statusCode, const Server &srv)
 	switch (code)
 	{
 		case 400:
-			return buildHttpResponse("400 Bad request", "text/html", res);
+			return buildHttpResponse("400 Bad request", "text/html", res, loc);
 		case 403:
-			return buildHttpResponse("403 Forbidden", "text/html", res);
+			return buildHttpResponse("403 Forbidden", "text/html", res, loc);
 		case 404:
-			return buildHttpResponse("404 Not Found", "text/html", res);
+			return buildHttpResponse("404 Not Found", "text/html", res, loc);
 		case 405:
-			return buildHttpResponse("405 Method Not Allowed", "text/html", res);
+			return buildHttpResponse("405 Method Not Allowed", "text/html", res, loc);
 		case 500:
-			return buildHttpResponse("500 Internal Server Error", "text/html", res);
+			return buildHttpResponse("500 Internal Server Error", "text/html", res, loc);
 		case 501:
-			return buildHttpResponse("501 Not Implemented", "text/html", res);
+			return buildHttpResponse("501 Not Implemented", "text/html", res, loc);
 		case 502:
-			return buildHttpResponse("502 Bad Gateway", "text/html", res);
+			return buildHttpResponse("502 Bad Gateway", "text/html", res, loc);
 	}
-	return buildHttpResponse("500 Internal Server Error", "text/html", res);
+	return buildHttpResponse("500 Internal Server Error", "text/html", res, loc);
 }
 
-static std::string	isDir(std::string &fullPath, const Server &srv)
+static std::string	isDir(std::string &fullPath, const Server &srv, const Location loc)
 {
 	bool autoindex = false;
 	for (size_t i = 0; i < srv.getLocations().size(); i++)
@@ -219,11 +228,11 @@ static std::string	isDir(std::string &fullPath, const Server &srv)
 			autoindex = srv.getLocations()[i].getAutoIndex();
 	}
 	if (autoindex == false)
-		return errorPage("Error 403", srv);
+		return errorPage("Error 403", srv, loc);
 	std::string fulldir;
 	DIR *dir = opendir(fullPath.c_str());
 	if (!dir)
-		return errorPage("Error 403", srv);
+		return errorPage("Error 403", srv, loc);
 	struct dirent *entry;
 	while ((entry = readdir(dir)) != NULL)
 	{
@@ -231,21 +240,32 @@ static std::string	isDir(std::string &fullPath, const Server &srv)
 		fulldir += name + "\n";
 	}
 	closedir(dir);
-	return buildHttpResponse("200 OK", "text/html", fulldir);
+	return buildHttpResponse("200 OK", "text/html", fulldir, loc);
 }
 
 std::string handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd)
 {
 	struct stat s;
 	HttpRequest req;
+	Location loc;
 	if (parseHttpMessage(buffer, req) != PARSE_OK)
-		return errorPage("Error 400", srv);
+		return errorPage("Error 400", srv, loc);
 	std::string uri = req.getUri();
 	if (uri == "/" || uri.empty())
 		uri = "/index.html";
 	std::string fullPath = srv.getRoot() + uri;
 	if (req.getMethod() != "GET" && req.getMethod() != "POST" && req.getMethod() != "DELETE")
-		return errorPage("Error 501", srv);
+		return errorPage("Error 501", srv, loc);
+	for (size_t i = 0; i < srv.getLocations().size(); i++)
+	{
+		if (fullPath.find(srv.getLocations()[i].getPath()) != std::string::npos)
+		{
+			loc = srv.getLocations()[i];
+			loc.setBody();
+			if (loc.getBody() == "Error 404" && loc.getReturnValue() != "0")
+				return errorPage(loc.getBody(), srv, loc);
+		}
+	}
 	if (stat(fullPath.c_str(), &s) == 0)
 	{
 		if (s.st_mode & S_IFDIR)
@@ -258,10 +278,10 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 			{
 				std::string body = readFileContent(indexPath, buffer, srv, req);
 				if (body.empty())
-					return errorPage("Error 500", srv);
-				return buildHttpResponse("200 OK", getMimeType(indexPath), body);
+					return errorPage("Error 500", srv, loc);
+				return buildHttpResponse("200 OK", getMimeType(indexPath), body, loc);
 			}
-			return isDir(fullPath, srv);
+			return isDir(fullPath, srv, loc);
 		}
 	}
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1)
@@ -270,19 +290,19 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 		CGI cgi(temp.ScriptFileName(buffer), req, srv);
 		std::string content = cgi.execCGI(buffer, srv, _pollfd);
 		if (content.empty())
-			return errorPage("Error 502", srv);
-		return buildHttpResponse("200 OK", "text/html", content);
+			return errorPage("Error 502", srv, loc);
+		return buildHttpResponse("200 OK", "text/html", content, loc);
 	}
 	std::string body = readFileContent(fullPath, buffer, srv, req);
 	if (body.empty() && req.getMethod() == "GET")
-		return errorPage("Error 404", srv);
+		return errorPage("Error 404", srv, loc);
 	if (fullPath.find("/uploaded/") != std::string::npos && body.find("Error") == std::string::npos)
-		return (buildHttpResponse("201 Created", "text/html", body));
+		return (buildHttpResponse("201 Created", "text/html", body, loc));
 	else if (fullPath.find("/uploaded/") != std::string::npos)
-		return errorPage(body, srv);
+		return errorPage(body, srv, loc);
 	if (fullPath.find("/delete/") != std::string::npos && body.find("Error") == std::string::npos)
-		return (buildHttpResponse("200 OK", "text/html", body));
+		return (buildHttpResponse("200 OK", "text/html", body, loc));
 	else if (fullPath.find("/delete/") != std::string::npos)
-		return errorPage(body, srv);
-	return buildHttpResponse("200 OK", getMimeType(fullPath), body);
+		return errorPage(body, srv, loc);
+	return buildHttpResponse("200 OK", getMimeType(fullPath), body, loc);
 }

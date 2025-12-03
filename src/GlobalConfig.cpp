@@ -188,6 +188,11 @@ bool parseConfigFile(const std::string &filename, Config &config)
 			}
 			else if (lkey == "uploaded_store")
 				current_location.setUploadedStore(val);
+			else if (lkey == "return")
+			{
+				current_location.setReturnValue(val.substr(0, 3));
+				current_location.setNewPath("site/" + current_location.getPath() + val.substr(4));
+			}
 		}
 		else if (in_server)
 		{
