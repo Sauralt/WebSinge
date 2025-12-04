@@ -4,7 +4,13 @@ Poll::Poll()
 {}
 
 Poll::~Poll()
-{}
+{ 
+    for (size_t i = 0; i < _listeningsock.size(); i++)
+        close(_listeningsock[i]);
+    for (size_t i = 0; i < _pollrequest.size(); i++)
+        close(_pollrequest[i].fd);
+}
+
 
 Poll::Poll(Poll& copy)
 {
@@ -32,8 +38,8 @@ int	Poll::socketfd(const Server& srv)
 	}
 
 	const int enable = 1;
-	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
-		std::cerr << "setsockopt(SO_REUSEPORT) failed" << std::endl;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+		std::cerr << "setsockopt(SO_REUSEADDR) failed" << std::endl;
 
 	sockaddr_in sockaddr;
 	sockaddr.sin_family = AF_INET;
@@ -53,6 +59,7 @@ int	Poll::socketfd(const Server& srv)
 	}
 	return sockfd;
 }
+
 
 void	Poll::add_socket(int sockfd)
 {
