@@ -74,8 +74,9 @@ std::string	CGI::ScriptFileName(std::string request)
 {
 	std::string	res;
 
-	for (std::string::iterator it = request.begin() + 4; (*it) != '?'; it++)
+	for (std::string::iterator it = request.begin() + 4; (*it) != 'y' && (*it - 1) != 'p' && (*it - 2) != '.'; it++)
 		res.push_back((*it));
+	res.push_back('y');
 	return res;
 }
 
@@ -115,9 +116,9 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	}
 	else
 	{
+		waitpid(-1, NULL, 0);
 		int bufSize = srv.getClientBodyBufferSize();
 		char* buffer = new char[bufSize];
-		waitpid(-1, NULL, 0);
 		lseek(fdOut, 0, SEEK_SET);
 		int ret = 1;
 		while (ret > 0)

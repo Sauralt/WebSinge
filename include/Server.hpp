@@ -31,7 +31,6 @@ class Server
 		void setRoot(const std::string &root);
 		void addLocation(const Location &loc);
 		void setErrorPage(int code, const std::string &path);
-		void print() const;
 		const std::string& getHost() const;
 		bool isAllowed(std::string name, std::string method) const;
 		std::map<std::string, std::string> getError() const;

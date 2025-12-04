@@ -1,7 +1,11 @@
 #include "../include/Location.hpp"
 
-Location::Location() : _allowGet(false), _allowPost(false), _allowDelete(false), _autoindex(false), _uploaded_store("uploaded/")
-{}
+Location::Location() : _allowGet(false), _allowPost(false), _allowDelete(false)
+{
+	_uploaded_store = "uploaded/";
+	_autoindex = false;
+	_returnValue = "0";
+}
 
 Location::~Location()
 {}
@@ -16,12 +20,15 @@ Location &Location::operator=(const Location& copy)
 {
 	this->_index_file = copy._index_file;
 	this->_path = copy._path;
-    this->_allowMethods = copy._allowMethods;
-    this->_allowGet = copy._allowGet;
-    this->_allowPost = copy._allowPost;
-    this->_allowDelete = copy._allowDelete;
-    this->_autoindex = copy._autoindex;
-    this->_uploaded_store = copy._uploaded_store;
+	this->_allowMethods = copy._allowMethods;
+	this->_allowGet = copy._allowGet;
+	this->_allowPost = copy._allowPost;
+	this->_allowDelete = copy._allowDelete;
+	this->_autoindex = copy._autoindex;
+	this->_uploaded_store = copy._uploaded_store;
+	this->_newPath = copy._newPath;
+	this->_returnValue = copy._returnValue;
+	this->_ext = copy._ext;
 	return *this;
 }
 
@@ -39,19 +46,6 @@ const std::string &Location::getPath() const
 
 void Location::setPath(const std::string &path)
 { _path = path; }
-
-void Location::print() const
-{
-	// std::cout << "Location: path=" << _path << ", upload=" << (_allow_upload ? "true" : "false") << std::endl
-    //             << ", index=[";
-                for (size_t i = 0; i < _index_file.size(); i++)
-                {
-                    std::cout << _index_file[i];
-                    if (i + 1 < _index_file.size())
-                        std::cout << ", ";
-                }
-                std::cout << "]" << std::endl;
-}
 
 void Location::setAllowMethods(const std::vector<std::string> &methods)
 {
@@ -71,9 +65,7 @@ void Location::setAllowMethods(const std::vector<std::string> &methods)
 }
 
 const std::vector<std::string> &Location::getAllowMethods() const
-{
-	return _allowMethods;
-}
+{ return _allowMethods; }
 
 bool Location::isMethodAllowed(const std::string &m) const
 {
@@ -84,31 +76,53 @@ bool Location::isMethodAllowed(const std::string &m) const
 }
 
 void Location::setAutoIndex(bool value) 
-{ 
-	_autoindex = value; 
-}
+{ _autoindex = value; }
 
 bool Location::getAutoIndex() const 
-{ 
-	return _autoindex; 
-}
+{ return _autoindex; }
 
 void Location::setUploadedStore(const std::string &dir)
-{
-	_uploaded_store = dir;
-}
+{ _uploaded_store = dir; }
 
 const std::string &Location::getUploadedStore() const
-{
-    return _uploaded_store;
-}
+{ return _uploaded_store; }
 
 void Location::setIndexFiles(const std::vector<std::string> &indexes)
-{
-        _index_file = indexes;
-}
+{ _index_file = indexes; }
 
 const std::vector<std::string>& Location::getIndexFiles() const
+{ return _index_file; }
+
+void	Location::setNewPath(std::string str)
+{ this->_newPath = str; }
+
+void	Location::setReturnValue(std::string str)
+{ this->_returnValue = str; }
+
+void	Location::setBody()
 {
-    return _index_file;
+	std::string line;
+	std::ifstream file (_newPath.c_str());
+	if (!file)
+	{
+		_body += "Error 404";
+		return ;
+	}
+	while (getline(file, line))
+		_body += line;
 }
+
+void	Location::setExt(std::string str)
+{ _ext = str; }
+
+std::string	Location::getReturnValue() const
+{ return this->_returnValue; }
+
+std::string	Location::getNewPath() const
+{ return this->_newPath; }
+
+std::string	Location::getBody() const
+{ return this->_body; }
+
+std::string	Location::getExt() const
+{ return _ext; }

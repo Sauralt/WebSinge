@@ -10,11 +10,14 @@ class Location
 		std::vector<std::string>	_index_file;
 		std::vector<std::string>	_allowMethods;
 		bool						_allowGet;
-    	bool						_allowPost;
-    	bool						_allowDelete;
+		bool						_allowPost;
+		bool						_allowDelete;
 		bool						_autoindex;
 		std::string					_uploaded_store;
-		
+		std::string					_returnValue;
+		std::string					_newPath;
+		std::string					_body;
+		std::string					_ext;
 	public:
 		Location();
 		~Location();
@@ -34,7 +37,14 @@ class Location
 		void setUploadedStore(const std::string &dir);
 		const std::string &getUploadedStore() const;
 		void setPath(const std::string &path);
-		void print() const;
+		void		setReturnValue(std::string str);
+		void		setNewPath(std::string str);
+		void		setBody();
+		void		setExt(std::string str);
+		std::string	getReturnValue() const;
+		std::string	getNewPath() const;
+		std::string	getBody() const;
+		std::string	getExt() const;
 };
 
 #endif
