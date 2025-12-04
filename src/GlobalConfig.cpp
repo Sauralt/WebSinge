@@ -55,7 +55,6 @@ static std::string upper(const std::string &s)
 	return r;
 }
 
-
 bool parseConfigFile(const std::string &filename, Config &config)
 {
 	std::ifstream file(filename.c_str());
