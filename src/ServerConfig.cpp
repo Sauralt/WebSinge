@@ -269,7 +269,8 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 				return errorPage(loc.getBody(), srv, loc);
 		}
 	}
-
+	if (srv.isAllowed(req.getUri(), req.getMethod()) == false)
+		return errorPage("Error 405", srv, loc);
 	//get directory content if path = directory
 	if (stat(fullPath.c_str(), &s) == 0)
 	{
@@ -295,7 +296,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	{
 		CGI temp;
 		CGI cgi(temp.ScriptFileName(buffer), req, srv);
-		std::string content = cgi.execCGI(buffer, srv, _pollfd);
+		std::string content = cgi.execCGI(req.getBody(), srv, _pollfd);
 		if (content.empty())
 			return errorPage("Error 502", srv, loc);
 		return buildHttpResponse("200 OK", "text/html", content, loc);
@@ -312,8 +313,6 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	if (fullPath.find("/delete/") != std::string::npos && body.find("Error") == std::string::npos)
 		return (buildHttpResponse("200 OK", "text/html", body, loc));
 	else if (fullPath.find("/delete/") != std::string::npos)
-		return errorPage(body, srv, loc);
-	if (srv.isAllowed(req.getUri(), req.getMethod()) == false)
 		return errorPage(body, srv, loc);
 	return buildHttpResponse("200 OK", getMimeType(fullPath), body, loc);
 }

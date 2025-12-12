@@ -33,6 +33,7 @@ void	CGI::initEnv(std::string CGIPath, HttpRequest& req, const Server &srv)
 	char cwd[1024];
 	getcwd(cwd, sizeof(cwd));
 	std::string abs = std::string(cwd) + "/site" + CGIPath;
+	this->_env["SCRIPT_FILENAME"] = abs;
 	s << req.getContentLength();
 	str = s.str();
 	this->_env["CONTENT_LENGTH"] = str;
@@ -46,7 +47,6 @@ void	CGI::initEnv(std::string CGIPath, HttpRequest& req, const Server &srv)
 	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	this->_env["CONTENT_TYPE"] = req.getHeaderValue("Content-Type");
 	this->_env["SCRIPT_NAME"] = CGIPath;
-	this->_env["SCRIPT_FILENAME"] = abs;
 	this->_env["SERVER_SOFTWARE"] = srv.getServerName() + "/1.0";
 	this->_env["SERVER_NAME"] = srv.getServerName();
 	this->_env["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin";
@@ -72,8 +72,13 @@ char**	CGI::MapToChar()
 std::string	CGI::ScriptFileName(std::string request)
 {
 	std::string	res;
+	int			metLen;
 
-	for (std::string::iterator it = request.begin() + 4; (*it) != 'y' && (*it - 1) != 'p' && (*it - 2) != '.'; it++)
+	if (request.find("GET") != std::string::npos)
+		metLen = 4;
+	else
+		metLen = 5;
+	for (std::string::iterator it = request.begin() + metLen; (*it) != 'y' && (*it - 1) != 'p' && (*it - 2) != '.'; it++)
 		res.push_back((*it));
 	res.push_back('y');
 	return res;
@@ -92,6 +97,7 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	FILE	*outfile = tmpfile();
 	long	fdIn = fileno(infile);
 	long	fdOut = fileno(outfile);
+	fcntl(fdOut, F_SETFL, O_NONBLOCK);
 	write(fdIn, request.c_str(), request.size());
 	lseek(fdIn, 0, SEEK_SET);
 	pid = fork();
@@ -101,7 +107,6 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	{
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		char * const * nil = NULL;
 		for (size_t i = 0; i < _pollfd.size(); i++)
 			close(_pollfd[i].fd);
 		std::fclose(infile);
@@ -110,12 +115,16 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 		close(fdOut);
 		close(Stdin);
 		close(Stdout);
-		execve(this->_env["SCRIPT_FILENAME"].c_str(), nil, env);
-		write(STDOUT_FILENO, "500 Internal server error\r\n\r\n", 25);
+		char *argv[2];
+		argv[0] = (char*)this->_env["SCRIPT_FILENAME"].c_str();
+		argv[1] = NULL;
+		execve(argv[0], argv, env);
+		write(STDOUT_FILENO, "500 Internal server error\r\n\r\n", 29);
+		exit(1);
 	}
 	else
 	{
-		waitpid(-1, NULL, 0);
+		waitpid(pid, NULL, 0);
 		int bufSize = srv.getClientBodyBufferSize();
 		char* buffer = new char[bufSize];
 		lseek(fdOut, 0, SEEK_SET);

@@ -148,5 +148,8 @@ ParseStatus parseHttpMessage(const std::string buffer, HttpRequest &req)
 		else if (key == "Transfer-Encoding" && val == "chunked")
 			req.setChunked(true);
 	}
+	std::string body(req.getContentLength(), '\0');
+	iss.read(&body[0], req.getContentLength());
+	req.setBody(body);
 	return PARSE_OK;
 }
