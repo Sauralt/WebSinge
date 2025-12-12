@@ -245,6 +245,7 @@ static std::string	isDir(std::string &fullPath, const Server &srv, const Locatio
 
 std::string handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd)
 {
+	//Parsing request
 	struct stat s;
 	HttpRequest req;
 	Location loc;
@@ -256,6 +257,8 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	std::string fullPath = srv.getRoot() + uri;
 	if (req.getMethod() != "GET" && req.getMethod() != "POST" && req.getMethod() != "DELETE")
 		return errorPage("Error 501", srv, loc);
+
+	//get current location
 	for (size_t i = 0; i < srv.getLocations().size(); i++)
 	{
 		if (fullPath.find(srv.getLocations()[i].getPath()) != std::string::npos)
@@ -266,6 +269,9 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 				return errorPage(loc.getBody(), srv, loc);
 		}
 	}
+	if (srv.isAllowed(req.getUri(), req.getMethod()) == false)
+		return errorPage("Error 405", srv, loc);
+	//get directory content if path = directory
 	if (stat(fullPath.c_str(), &s) == 0)
 	{
 		if (s.st_mode & S_IFDIR)
@@ -284,15 +290,19 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 			return isDir(fullPath, srv, loc);
 		}
 	}
+
+	//run cgi
 	if (fullPath.find(".py") != std::string::npos && access(fullPath.c_str(), F_OK) != -1 && loc.getExt() == ".py")
 	{
 		CGI temp;
 		CGI cgi(temp.ScriptFileName(buffer), req, srv);
-		std::string content = cgi.execCGI(buffer, srv, _pollfd);
+		std::string content = cgi.execCGI(req.getBody(), srv, _pollfd);
 		if (content.empty())
 			return errorPage("Error 502", srv, loc);
 		return buildHttpResponse("200 OK", "text/html", content, loc);
 	}
+
+	//building response
 	std::string body = readFileContent(fullPath, buffer, srv, req);
 	if (body.empty() && req.getMethod() == "GET")
 		return errorPage("Error 404", srv, loc);

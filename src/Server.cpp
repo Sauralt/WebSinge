@@ -93,7 +93,9 @@ bool	Server::isAllowed(std::string name, std::string method) const
 		{
 			if (this->_locations[i].isMethodAllowed(method) == true)
 				return true;
+			else
+				return false;
 		}
 	}
-	return false;
+	return true;
 }
