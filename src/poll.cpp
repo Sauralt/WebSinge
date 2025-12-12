@@ -22,6 +22,17 @@ void	signal_handler(int sig)
 	gSignalStatus = sig;
 }
 
+std::vector<pollfd>&	Poll::getPollRequest()
+{ return _pollrequest; }
+
+void	Poll::addPollRequest(long& fd)
+{
+	pollfd newfd;
+	newfd.fd = fd;
+	newfd.events = POLLIN;
+	newfd.revents = 0;
+}
+
 int	Poll::socketfd(const Server& srv)
 {
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -118,7 +129,7 @@ int	Poll::send_socket(int i, const Server& srv)
 		this->_buffer[this->_pollrequest[i].fd] += buffer;
 		if (requestIsComplete(this->_buffer[this->_pollrequest[i].fd]))
 		{
-			std::string response = handleClient(srv, this->_buffer[this->_pollrequest[i].fd], this->_pollrequest);
+			std::string response = handleClient(srv, this->_buffer[this->_pollrequest[i].fd]);
 			std::cout << "sending response for socket " << this->_pollrequest[i].fd << " in server connected to port " << this->_clientsrv[this->_pollrequest[i].fd]->getPort() << ".\n";
 			send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
 			this->_buffer.erase(this->_pollrequest[i].fd);

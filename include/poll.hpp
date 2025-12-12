@@ -2,7 +2,6 @@
 # define POLL_HPP
 # include "header.hpp"
 # include "Server.hpp"
-# include "ServerConfig.hpp"
 
 extern int	gSignalStatus;
 
@@ -21,9 +20,12 @@ class Poll
 		Poll();
 		~Poll();
 		Poll(Poll& copy);
-		Poll&	operator=(Poll& copy);
-		void		pollrequest(std::vector<Server>& servers);
-		bool		listeningSock(int fd);
+		Poll&					operator=(Poll& copy);
+		void					pollrequest(std::vector<Server>& servers);
+		bool					listeningSock(int fd);
+		std::vector<pollfd>&	getPollRequest();
+		void					addPollRequest(long& newfd);
+		std::string	handleClient(const Server &srv, std::string buffer);
 };
 
 #endif

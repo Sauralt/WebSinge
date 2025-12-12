@@ -3,6 +3,7 @@
 # include "header.hpp"
 # include "HttpParser.hpp"
 # include "Server.hpp"
+# include "poll.hpp"
 
 class CGI
 {
@@ -14,7 +15,7 @@ class CGI
 		~CGI();
 		CGI(CGI& copy);
 		CGI&	operator=(CGI& copy);
-		std::string	execCGI(std::string cgi, const Server &srv, std::vector<pollfd>& _pollfd);
+		std::string	execCGI(std::string cgi, const Server &srv, Poll& _poll);
 		char**	MapToChar();
 		void	initEnv(std::string CGIPath, HttpRequest& req, const Server &srv);
 		std::string	ScriptFileName(std::string request);

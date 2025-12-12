@@ -84,7 +84,7 @@ std::string	CGI::ScriptFileName(std::string request)
 	return res;
 }
 
-std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pollfd>& _pollfd)
+std::string	CGI::execCGI(std::string request, const Server &srv, Poll& _poll)
 {
 	pid_t	pid;
 	char**	env = this->MapToChar();
@@ -107,8 +107,8 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 	{
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		for (size_t i = 0; i < _pollfd.size(); i++)
-			close(_pollfd[i].fd);
+		for (size_t i = 0; i < _poll.getPollRequest().size(); i++)
+			close(_poll.getPollRequest()[i].fd);
 		std::fclose(infile);
 		std::fclose(outfile);
 		close(fdIn);
@@ -136,6 +136,7 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 			cgi += buffer;
 		}
 		delete [] buffer;
+		//_poll.addPollRequest(fdOut);
 	}
 	dup2(Stdin, STDIN_FILENO);
 	dup2(Stdout, STDOUT_FILENO);

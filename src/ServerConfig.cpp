@@ -1,7 +1,7 @@
 #include "../include/header.hpp"
-#include "../include/ServerConfig.hpp"
 #include "../include/CGI.hpp"
 #include "../include/Mime.hpp"
+#include "../include/poll.hpp"
 
 static std::string buildHttpResponse(const std::string &status,
 										const std::string &contentType,
@@ -243,7 +243,7 @@ static std::string	isDir(std::string &fullPath, const Server &srv, const Locatio
 	return buildHttpResponse("200 OK", "text/html", fulldir, loc);
 }
 
-std::string handleClient(const Server &srv, std::string buffer, std::vector<pollfd>& _pollfd)
+std::string Poll::handleClient(const Server &srv, std::string buffer)
 {
 	//Parsing request
 	struct stat s;
@@ -271,6 +271,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	}
 	if (srv.isAllowed(req.getUri(), req.getMethod()) == false)
 		return errorPage("Error 405", srv, loc);
+
 	//get directory content if path = directory
 	if (stat(fullPath.c_str(), &s) == 0)
 	{
@@ -296,7 +297,7 @@ std::string handleClient(const Server &srv, std::string buffer, std::vector<poll
 	{
 		CGI temp;
 		CGI cgi(temp.ScriptFileName(buffer), req, srv);
-		std::string content = cgi.execCGI(req.getBody(), srv, _pollfd);
+		std::string content = cgi.execCGI(req.getBody(), srv, *this);
 		if (content.empty())
 			return errorPage("Error 502", srv, loc);
 		return buildHttpResponse("200 OK", "text/html", content, loc);
