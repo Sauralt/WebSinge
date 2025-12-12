@@ -45,7 +45,6 @@ void	CGI::initEnv(std::string CGIPath, HttpRequest& req, const Server &srv)
 	this->_env["SERVER_PROTOCOL"] = req.getHttpVersion();
 	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	this->_env["CONTENT_TYPE"] = req.getHeaderValue("Content-Type");
-	this->_env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_env["SCRIPT_NAME"] = CGIPath;
 	this->_env["SCRIPT_FILENAME"] = abs;
 	this->_env["SERVER_SOFTWARE"] = srv.getServerName() + "/1.0";
