@@ -114,56 +114,6 @@ bool requestIsComplete(const std::string &buffer)
 	return true;
 }
 
-
-// int	Poll::send_socket(int i, const Server& srv)
-// {
-// 	int status;
-// 	int ret = -1;
-// 	int bufSize = srv.getClientBodyBufferSize();
-// 	ssize_t bytesRead;
-// 	char* buffer = new char[bufSize];
-// 	if (this->_pids[_pollrequest[i].fd] != 0)
-// 		bytesRead = read(this->_pollrequest[i].fd, buffer, bufSize - 1);
-// 	else
-// 		bytesRead = recv(this->_pollrequest[i].fd, buffer, bufSize - 1, 0);
-// 	std::string response;
-// 	Location loc;
-// 	buffer[bytesRead] = '\0';
-// 	this->_buffer[this->_pollrequest[i].fd] += buffer;
-// 	if (this->_pids.count(_pollrequest[i].fd))
-// 		ret = waitpid(this->_pids[_pollrequest[i].fd], &status, WNOHANG);
-// 	if (ret == this->_pids[_pollrequest[i].fd])
-// 	{
-// 		response = buildHttpResponse("200 OK", "text/html", _buffer[_pollrequest[i].fd], loc);
-// 		send(_cgipollfd[_fd].fd, response.c_str(), response.size(), 0);
-// 		this->_buffer.erase(this->_pollrequest[i].fd);
-// 	}
-// 	if (bytesRead <= 0)
-// 	{
-// 			close(this->_pollrequest[i].fd);
-// 			this->_pollrequest.erase(this->_pollrequest.begin() + i);
-// 			delete [] buffer;
-// 			i--;
-// 	}
-// 	else if (requestIsComplete(this->_buffer[this->_pollrequest[i].fd]))
-// 	{
-// 		response = handleClient(srv, this->_buffer[this->_pollrequest[i].fd]);
-// 		if (response == "cgi executing")
-// 		{
-// 			_cgipollfd[_fd] = _pollrequest[i];
-// 			std::cout << "cgi executing for socket " << this->_pollrequest[i].fd << " in server connected to port " << this->_clientsrv[this->_pollrequest[i].fd]->getPort() << ".\n";
-// 			this->_buffer.erase(this->_pollrequest[i].fd);
-// 			delete [] buffer;
-// 			return i;
-// 		}
-// 		std::cout << "sending response for socket " << this->_pollrequest[i].fd << " in server connected to port " << this->_clientsrv[this->_pollrequest[i].fd]->getPort() << ".\n";
-// 		send(this->_pollrequest[i].fd, response.c_str(), response.size(), 0);
-// 		this->_buffer.erase(this->_pollrequest[i].fd);
-// 	}
-// 	delete [] buffer;
-// 	return i;
-// }
-
 int Poll::send_socket(int i, const Server& srv)
 {
 	int fd = _pollrequest[i].fd;
@@ -188,12 +138,9 @@ int Poll::send_socket(int i, const Server& srv)
 		if (!_cgifd.count(fd))
 			return i - 1;
 		int client_fd = _cgifd.at(fd);
-		std::string response =
-			buildHttpResponse("200 OK", "text/html", cgiOut, Location());
+		std::string response = buildHttpResponse("200 OK", "text/html", cgiOut, Location());
 		std::cout << "sending response for socket " << this->_pollrequest[i].fd
-		<< " in server connected to port "
-		<< srv.getPort()
-		<< ".\n";
+		<< " in server connected to port " << srv.getPort() << ".\n";
 		send(client_fd, response.c_str(), response.size(), 0);
 		_buffer.erase(fd);
 		_pids.erase(fd);
@@ -202,6 +149,7 @@ int Poll::send_socket(int i, const Server& srv)
 		_cgifd.erase(fd);
 		return i - 1;
 	}
+
 	ssize_t n = recv(fd, buf, bufSize, 0);
 	if (n <= 0)
 	{
@@ -223,9 +171,7 @@ int Poll::send_socket(int i, const Server& srv)
 		return i;
 	}
 	std::cout << "sending response for socket " << this->_pollrequest[i].fd
-	<< " in server connected to port "
-	<< srv.getPort()
-	<< ".\n";
+	<< " in server connected to port " << srv.getPort() << ".\n";
 	send(fd, response.c_str(), response.size(), 0);
 	close(fd);
 	_buffer.erase(fd);
@@ -277,8 +223,6 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 				else
 					i = send_socket(i, *_clientsrv[this->_pollrequest[i].fd]);
 			}
-			// for (size_t j = 0; j < this->_pollrequest.size(); ++j)
-			// 	std::cout << _pollrequest[j].fd << "\n";
 		}
 	}
 	for (size_t i = 0; i < this->_pollrequest.size(); i++)
