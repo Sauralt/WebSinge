@@ -84,37 +84,29 @@ std::string	CGI::ScriptFileName(std::string request)
 	return res;
 }
 
-std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pollfd>& _pollfd)
+int	CGI::execCGI(std::string request, Poll& _poll)
 {
 	pid_t	pid;
 	char**	env = this->MapToChar();
-	std::string	cgi;
 	if (!env)
-		return "";
-	int		Stdin = dup(STDIN_FILENO);
-	int		Stdout = dup(STDOUT_FILENO);
-	FILE	*infile = tmpfile();
-	FILE	*outfile = tmpfile();
-	long	fdIn = fileno(infile);
-	long	fdOut = fileno(outfile);
-	fcntl(fdOut, F_SETFL, O_NONBLOCK);
-	write(fdIn, request.c_str(), request.size());
-	lseek(fdIn, 0, SEEK_SET);
+		return -1;
+	int		inFd[2];
+	int		outFd[2];
+	if (pipe(inFd) < 0 || pipe(outFd) < 0)
+		return -1;
 	pid = fork();
 	if (pid < 0)
-		return NULL;
+		return -1;
 	if (pid == 0)
 	{
-		dup2(fdIn, STDIN_FILENO);
-		dup2(fdOut, STDOUT_FILENO);
-		for (size_t i = 0; i < _pollfd.size(); i++)
-			close(_pollfd[i].fd);
-		std::fclose(infile);
-		std::fclose(outfile);
-		close(fdIn);
-		close(fdOut);
-		close(Stdin);
-		close(Stdout);
+		dup2(inFd[0], STDIN_FILENO);
+		dup2(outFd[1], STDOUT_FILENO);
+		for (size_t i = 0; i < _poll.getPollRequest().size(); i++)
+			close(_poll.getPollRequest()[i].fd);
+		close(inFd[0]);
+		close(outFd[1]);
+		close(inFd[1]);
+		close(outFd[0]);
 		char *argv[2];
 		argv[0] = (char*)this->_env["SCRIPT_FILENAME"].c_str();
 		argv[1] = NULL;
@@ -122,33 +114,15 @@ std::string	CGI::execCGI(std::string request, const Server &srv, std::vector<pol
 		write(STDOUT_FILENO, "500 Internal server error\r\n\r\n", 29);
 		exit(1);
 	}
-	else
-	{
-		waitpid(pid, NULL, 0);
-		int bufSize = srv.getClientBodyBufferSize();
-		char* buffer = new char[bufSize];
-		lseek(fdOut, 0, SEEK_SET);
-		int ret = 1;
-		while (ret > 0)
-		{
-			ret = read(fdOut, buffer, bufSize - 1);
-			buffer[ret] = '\0';
-			cgi += buffer;
-		}
-		delete [] buffer;
-	}
-	dup2(Stdin, STDIN_FILENO);
-	dup2(Stdout, STDOUT_FILENO);
-	std::fclose(infile);
-	std::fclose(outfile);
-	close(fdIn);
-	close(fdOut);
-	close(Stdin);
-	close(Stdout);
+	write(inFd[1], request.c_str(), request.size());
+	close(inFd[1]);
+	fcntl(outFd[0], F_SETFL, O_NONBLOCK);
+	_poll.addPollRequest(outFd[0]);
+	_poll.addPID(outFd[0], pid);
+	close(inFd[0]);
+	close(outFd[1]);
 	for (size_t i = 0; env[i]; i++)
-		delete[] env[i];
-	delete[] env;
-	if (!pid)
-		exit(0);
-	return (cgi);
+		delete [] env[i];
+	delete [] env;
+	return (outFd[0]);
 }
