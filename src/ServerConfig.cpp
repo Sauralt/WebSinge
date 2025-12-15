@@ -3,10 +3,10 @@
 #include "../include/Mime.hpp"
 #include "../include/poll.hpp"
 
-static std::string buildHttpResponse(const std::string &status,
-										const std::string &contentType,
-										const std::string &body,
-										const Location &loc)
+std::string buildHttpResponse(const std::string &status,
+									const std::string &contentType,
+									const std::string &body,
+									const Location &loc)
 {
 	if (status == "200 OK" || status == "201 Created")
 	{
@@ -243,7 +243,7 @@ static std::string	isDir(std::string &fullPath, const Server &srv, const Locatio
 	return buildHttpResponse("200 OK", "text/html", fulldir, loc);
 }
 
-std::string Poll::handleClient(const Server &srv, std::string buffer)
+std::string Poll::handleClient(const Server &srv, std::string buffer, int fd)
 {
 	//Parsing request
 	struct stat s;
@@ -297,10 +297,11 @@ std::string Poll::handleClient(const Server &srv, std::string buffer)
 	{
 		CGI temp;
 		CGI cgi(temp.ScriptFileName(buffer), req, srv);
-		std::string content = cgi.execCGI(req.getBody(), srv, *this);
-		if (content.empty())
+		int cgifd = cgi.execCGI(req.getBody(), *this);
+		_cgifd[cgifd] = fd;
+		if (fd == -1)
 			return errorPage("Error 502", srv, loc);
-		return buildHttpResponse("200 OK", "text/html", content, loc);
+		return "cgi executing";
 	}
 
 	//building response
