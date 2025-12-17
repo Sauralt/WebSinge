@@ -119,18 +119,21 @@ int Poll::send_socket(int i, const Server& srv)
 	int fd = _pollrequest[i].fd;
 	int bufSize = srv.getClientBodyBufferSize();
 	char* buf = new char[bufSize];
+
+	//if it's cgi outfd
 	if (_pids.count(fd))
 	{
-		ssize_t n = read(fd, buf, bufSize);
-		if (n > 0)
+		while (true)
 		{
-			_buffer[fd].append(buf, n);
-			delete [] buf;
-		}
-		if (n < 0)
-		{
-			delete [] buf;
-			return i;
+			ssize_t n = read(fd, buf, bufSize);
+			std::cout << n << "\n";
+			if (n > 0)
+			{
+				std::cout << "test\n";
+				_buffer[fd].append(buf, n);
+			}
+			if (n < 0)
+				break;
 		}
 		int status;
 		waitpid(_pids[fd], &status, 0);
@@ -150,6 +153,7 @@ int Poll::send_socket(int i, const Server& srv)
 		return i - 1;
 	}
 
+	//if it's a socket
 	ssize_t n = recv(fd, buf, bufSize, 0);
 	if (n <= 0)
 	{

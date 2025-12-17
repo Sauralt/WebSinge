@@ -58,13 +58,15 @@ static std::string	uploadFile(const std::string buffer, const Server &srv)
 			}
 		}
 	}
+	if (filename == "")
+		return "No file to upload";
 	std::ofstream outfile(filename.c_str());
 	outfile << content << std::endl;
 	outfile.close();
 	return "File uploaded successfully";
 }
 
-static std::string	deleteFile(const std::string buffer, const Server &srv)
+static std::string	deleteFile(const std::string buffer, const Server &srv, std::string fullpath)
 {
 	std::string path = "uploaded/";
 	for (size_t i = 0; i < srv.getLocations().size(); i++)
@@ -74,7 +76,18 @@ static std::string	deleteFile(const std::string buffer, const Server &srv)
 	}
 	size_t pos = buffer.find("delete=");
 	if (pos == std::string::npos)
-		return "No file specified for deletion.";
+	{
+		path = ".";
+		path += fullpath.substr(6);
+		if (access(path.c_str(), F_OK) != 0)
+			return "No file specified for deletion.";
+		if (access(path.c_str(), X_OK | W_OK) != 0)
+			return "Error 403";
+		if (remove(path.c_str()) != 0)
+			return "Error 404";
+		else
+			return "File deleted successfully.";
+	}
 	size_t end = buffer.find_first_of("& \r\n", pos + 7);
 	std::string filename = buffer.substr(pos + 7, end - (pos + 7));
 	if (filename.empty())
@@ -93,17 +106,23 @@ static std::string readFileContent(const std::string &path, const std::string bu
 	std::ifstream file(path.c_str());
 	if (!file.is_open())
 	{
-		if (path.find("/uploaded/") != std::string::npos)
+		if (path.find("/uploaded/") != std::string::npos && req.getMethod() == "POST")
 		{
-			if (srv.isAllowed("/uploaded", "POST") == false || req.getMethod() != "POST")
+			if (srv.isAllowed("/uploaded", "POST") == false)
 				return ("Error 405");
 			return uploadFile(buffer, srv);
+		}
+		else if (path.find("/uploaded") != std::string::npos && req.getMethod() == "DELETE")
+		{
+			if (srv.isAllowed("/uploaded", "DELETE") == false)
+				return ("Error 405");
+			return deleteFile(buffer, srv, path);
 		}
 		else if (path.find("/delete/") != std::string::npos)
 		{
 			if (srv.isAllowed("/uploaded", "DELETE") == false)
 				return ("Error 405");
-			return deleteFile(buffer, srv);
+			return deleteFile(buffer, srv, path);
 		}
 		return "";
 	}
@@ -308,13 +327,19 @@ std::string Poll::handleClient(const Server &srv, std::string buffer, int fd)
 	std::string body = readFileContent(fullPath, buffer, srv, req);
 	if (body.empty() && req.getMethod() == "GET")
 		return errorPage("Error 404", srv, loc);
+
+	if (fullPath.find("/uploaded/") != std::string::npos && body.find("Error") == std::string::npos && req.getMethod() == "DELETE")
+		return (buildHttpResponse("200 OK", "text/html", body, loc));
+
 	if (fullPath.find("/uploaded/") != std::string::npos && body.find("Error") == std::string::npos)
 		return (buildHttpResponse("201 Created", "text/html", body, loc));
 	else if (fullPath.find("/uploaded/") != std::string::npos)
 		return errorPage(body, srv, loc);
+
 	if (fullPath.find("/delete/") != std::string::npos && body.find("Error") == std::string::npos)
 		return (buildHttpResponse("200 OK", "text/html", body, loc));
 	else if (fullPath.find("/delete/") != std::string::npos)
 		return errorPage(body, srv, loc);
+
 	return buildHttpResponse("200 OK", getMimeType(fullPath), body, loc);
 }
