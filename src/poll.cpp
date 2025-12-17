@@ -126,13 +126,9 @@ int Poll::send_socket(int i, const Server& srv)
 		while (true)
 		{
 			ssize_t n = read(fd, buf, bufSize);
-			std::cout << n << "\n";
 			if (n > 0)
-			{
-				std::cout << "test\n";
 				_buffer[fd].append(buf, n);
-			}
-			if (n < 0)
+			if (n <= 0)
 				break;
 		}
 		int status;
