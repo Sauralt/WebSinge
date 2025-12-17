@@ -288,7 +288,7 @@ std::string Poll::handleClient(const Server &srv, std::string buffer, int fd)
 				return errorPage(loc.getBody(), srv, loc);
 		}
 	}
-	if (srv.isAllowed(req.getUri(), req.getMethod()) == false)
+	if (srv.isAllowed(loc.getPath(), req.getMethod()) == false)
 		return errorPage("Error 405", srv, loc);
 
 	//get directory content if path = directory
