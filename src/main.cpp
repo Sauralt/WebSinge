@@ -22,6 +22,11 @@ int main(int argc, char **argv)
 		std::cerr << "Erreur: aucun serveur défini dans la configuration." << std::endl;
 		return 1;
 	}
+	if (config.ismultiple() == true)
+	{
+		std::cerr << "Erreur: meme port sur plusieurs serveurs." << std::endl;
+		return 1;
+	}
 	std::cout << "Server(s) starting..." << std::endl;
 	Poll polling;
 	polling.pollrequest(config.getServers());
