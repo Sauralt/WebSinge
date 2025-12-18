@@ -55,6 +55,19 @@ static std::string upper(const std::string &s)
 	return r;
 }
 
+bool	Config::ismultiple()
+{
+	for (int i = 0; i < _servNum; i++)
+	{
+		for (int j = i + 1; j < _servNum; j++)
+		{
+			if (_servers[i].getPort() == _servers[j].getPort())
+				return true;
+		}
+	}
+	return false;
+}
+
 bool parseConfigFile(const std::string &filename, Config &config)
 {
 	std::ifstream file(filename.c_str());

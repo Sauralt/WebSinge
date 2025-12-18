@@ -15,8 +15,9 @@ class Config
 	Config(Config& copy);
 	Config&	operator=(Config& copy);
 	std::vector<Server> &getServers();
-	int	getservNum();
-	void addServer(const Server &srv);
+	int		getservNum();
+	void	addServer(const Server &srv);
+	bool	ismultiple();
 };
 
 bool parseConfigFile(const std::string &filename, Config &config);
