@@ -138,6 +138,7 @@ int Poll::send_socket(int i, const Server& srv)
 			if (n <= 0)
 				break;
 		}
+		delete [] buf;
 		int status;
 		waitpid(_pids[fd], &status, 0);
 		std::string cgiOut = _buffer[fd];
