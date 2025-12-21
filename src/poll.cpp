@@ -64,12 +64,14 @@ int	Poll::socketfd(const Server& srv)
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0)
 	{
 		std::cerr << "Failed to bind to port :" << srv.getPort() << std::endl;
+		close(sockfd);
 		std::exit(EXIT_FAILURE);
 	}
 
 	if (listen(sockfd, 10) < 0)
 	{
 		std::cerr << "Failed to listen on socket." << std::endl;
+		close(sockfd);
 		std::exit(EXIT_FAILURE);
 	}
 	return sockfd;
