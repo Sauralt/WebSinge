@@ -49,12 +49,16 @@ int	Poll::socketfd(const Server& srv)
 	if (sockfd == -1)
 	{
 		std::cout << "Failed to create socket." << std::endl;
-		std::exit(EXIT_FAILURE);
+		return 0;
 	}
 
 	const int enable = 1;
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-		std::cerr << "setsockopt(SO_REUSEADDR) failed" << std::endl;
+	{
+		close(sockfd);
+		std::cerr << "setsockopt(SO_REUSEPORT) failed" << std::endl;
+		return 0;
+	}
 
 	sockaddr_in sockaddr;
 	sockaddr.sin_family = AF_INET;
@@ -63,16 +67,16 @@ int	Poll::socketfd(const Server& srv)
 
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0)
 	{
-		std::cerr << "Failed to bind to port :" << srv.getPort() << std::endl;
 		close(sockfd);
-		std::exit(EXIT_FAILURE);
+		std::cerr << "Failed to bind to port: " << srv.getPort() << std::endl;
+		return 0;
 	}
 
 	if (listen(sockfd, 10) < 0)
 	{
-		std::cerr << "Failed to listen on socket." << std::endl;
 		close(sockfd);
-		std::exit(EXIT_FAILURE);
+		std::cerr << "Failed to listen on socket." << std::endl;
+		return 0;
 	}
 	return sockfd;
 }
@@ -126,7 +130,7 @@ bool requestIsComplete(const std::string &buffer)
 int Poll::send_socket(int i, const Server& srv)
 {
 	int fd = _pollrequest[i].fd;
-	int bufSize = srv.getClientBodyBufferSize();
+	int bufSize = 100;
 	char* buf = new char[bufSize];
 
 	//if it's cgi outfd
@@ -142,12 +146,17 @@ int Poll::send_socket(int i, const Server& srv)
 		}
 		delete [] buf;
 		int status;
+		std::string response;
+		Location loc;
 		waitpid(_pids[fd], &status, 0);
 		std::string cgiOut = _buffer[fd];
 		if (!_cgifd.count(fd))
 			return i - 1;
 		int client_fd = _cgifd.at(fd);
-		std::string response = buildHttpResponse("200 OK", "text/html", cgiOut, Location());
+		if (cgiOut.find("Error 400") != std::string::npos)
+			response = errorPage(cgiOut, srv, loc);
+		else
+			response = buildHttpResponse("200 OK", "text/html", cgiOut, Location());
 		std::cout << "sending response for socket " << this->_pollrequest[i].fd
 		<< " in server connected to port " << srv.getPort() << ".\n";
 		send(client_fd, response.c_str(), response.size(), 0);
@@ -210,6 +219,8 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 		srv < servers.end(); srv++)
 	{
 		int	sockfd = socketfd((*srv));
+		if (sockfd == 0)
+			return ;
 		pollfd firstpoll;
 		firstpoll.fd = sockfd;
 		firstpoll.events = POLLIN;

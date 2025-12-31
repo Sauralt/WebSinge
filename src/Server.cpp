@@ -38,14 +38,10 @@ const std::string	&Server::getServerName() const
 { return _server_name; }
 
 void Server::setClientBodyBufferSize(int size)
-{
-    _clientBodyBufferSize = size;
-}
+{ _clientBodyBufferSize = size; }
 
-int Server::getClientBodyBufferSize() const
-{
-    return _clientBodyBufferSize;
-}
+size_t Server::getClientBodyBufferSize() const
+{ return _clientBodyBufferSize; }
 
 const std::string	&Server::getRoot() const
 { return _root; }
@@ -64,7 +60,6 @@ void	Server::setServerName(const std::string &name)
 
 void	Server::setRoot(const std::string &root)
 { _root = root; }
-
 
 void	Server::addLocation(const Location &loc)
 { _locations.push_back(loc); }

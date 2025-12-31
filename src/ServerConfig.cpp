@@ -174,19 +174,17 @@ static std::string buildErrorPage(const std::string &statusCode, const std::stri
 	return wrapHtmlPage(statusCode, ss.str());
 }
 
-static	std::string errorPage(const std::string &statusCode, const Server &srv, const Location &loc)
+std::string errorPage(const std::string &statusCode, const Server &srv, const Location &loc)
 {
 	std::stringstream s(statusCode.substr(6));
 	int code;
 	s >> code;
-
 	std::map<std::string, std::string> Errors = srv.getError();
 	std::string fullpath = srv.getRoot() + Errors[statusCode];
 	std::ifstream file (fullpath.c_str());
 	std::string line;
 	std::string res;
-
-	if (!file.is_open())
+	if (!file.is_open() || fullpath == srv.getRoot())
 	{
 		switch (code)
 		{
@@ -202,6 +200,9 @@ static	std::string errorPage(const std::string &statusCode, const Server &srv, c
 			case 405:
 				return buildHttpResponse("405 Method Not Allowed", "text/html",
 				buildErrorPage("405 Method Not Allowed", "Can not use this functionality, see the config file"), loc);
+			case 413:
+				return buildHttpResponse("413 Payload Too Large", "text/html",
+				buildErrorPage("413 Payload Too Large", "Request body too large"), loc);
 			case 500:
 				return buildHttpResponse("500 Internal Server Error", "text/html",
 				buildErrorPage("500 Internal Server Error", "Error while treating request"), loc);
@@ -228,6 +229,8 @@ static	std::string errorPage(const std::string &statusCode, const Server &srv, c
 			return buildHttpResponse("404 Not Found", "text/html", res, loc);
 		case 405:
 			return buildHttpResponse("405 Method Not Allowed", "text/html", res, loc);
+		case 413:
+			return buildHttpResponse("413 Payload Too Large", "text/html", res, loc);
 		case 500:
 			return buildHttpResponse("500 Internal Server Error", "text/html", res, loc);
 		case 501:
@@ -274,6 +277,8 @@ std::string Poll::handleClient(const Server &srv, std::string buffer, int fd)
 	if (uri == "/" || uri.empty())
 		uri = "/index.html";
 	std::string fullPath = srv.getRoot() + uri;
+	if (req.getContentLength() > srv.getClientBodyBufferSize() && req.getMethod() == "POST")
+		return errorPage("Error 413", srv, loc);
 	if (req.getMethod() != "GET" && req.getMethod() != "POST" && req.getMethod() != "DELETE")
 		return errorPage("Error 501", srv, loc);
 
