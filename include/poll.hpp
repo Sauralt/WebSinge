@@ -36,5 +36,7 @@ std::string buildHttpResponse(const std::string &status,
 									const std::string &contentType,
 									const std::string &body,
 									const Location &loc);
+std::string errorPage(const std::string &statusCode, const Server &srv,
+							const Location &loc);
 
 #endif
