@@ -15,6 +15,7 @@ class Poll
 		std::map<int, std::string>		_buffer;
 		std::map<int, pid_t>			_pids;
 		std::map<int, int>				_cgifd;
+		std::map<int, std::string>		_response;
 		int		socketfd(const Server& srv);
 		void	add_socket(int sockfd);
 		int		send_socket(int i, const Server& srv);

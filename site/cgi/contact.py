@@ -5,7 +5,6 @@ import sys
 import os
 
 form = cgi.FieldStorage()
-
 first_name = form.getvalue('first_name')
 last_name = form.getvalue('last_name')
 if first_name == None or last_name == None:

@@ -189,14 +189,9 @@ int Poll::send_socket(int i, const Server& srv)
 		std::cout << "cgi executing\n";
 		return i;
 	}
-	std::cout << "sending response for socket " << this->_pollrequest[i].fd
-	<< " in server connected to port " << srv.getPort() << ".\n";
-	send(fd, response.c_str(), response.size(), 0);
-	close(fd);
-	_buffer.erase(fd);
-	_clientsrv.erase(fd);
-	_pollrequest.erase(_pollrequest.begin() + i);
-	return i - 1;
+	_pollrequest[i].events = POLLOUT;
+	_response[fd] = response;
+	return i;
 }
 
 
@@ -243,6 +238,17 @@ void	Poll::pollrequest(std::vector<Server>& servers)
 					i = send_socket(i, *_clientsrv[_cgifd[_pollrequest[i].fd]]);
 				else
 					i = send_socket(i, *_clientsrv[this->_pollrequest[i].fd]);
+			}
+			if (this->_pollrequest[i].revents & POLLOUT)
+			{
+				std::cout << "sending response for socket " << this->_pollrequest[i].fd
+				<< " in server connected to port " << _clientsrv[this->_pollrequest[i].fd]->getPort() << ".\n";
+				send(this->_pollrequest[i].fd, _response[_pollrequest[i].fd].c_str(), _response[_pollrequest[i].fd].size(), 0);
+				close(this->_pollrequest[i].fd);
+				_buffer.erase(this->_pollrequest[i].fd);
+				_clientsrv.erase(this->_pollrequest[i].fd);
+				_pollrequest.erase(_pollrequest.begin() + i);
+				i--;
 			}
 		}
 	}
