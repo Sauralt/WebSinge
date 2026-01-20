@@ -48,7 +48,7 @@ static std::string	uploadFile(const std::string buffer, const Server &srv)
 		{
 			filename = path + line.substr(equal + 10, line.size() - (equal + 12));
 			if (filename == "uploaded/")
-				return "No file to upload.";
+				return "Error 400";
 			getline(file, line);
 			getline(file, line);
 			while (getline(file, line))
@@ -59,7 +59,7 @@ static std::string	uploadFile(const std::string buffer, const Server &srv)
 		}
 	}
 	if (filename == "")
-		return "No file to upload";
+		return "Error 400";
 	std::ofstream outfile(filename.c_str());
 	outfile << content << std::endl;
 	outfile.close();
@@ -80,7 +80,7 @@ static std::string	deleteFile(const std::string buffer, const Server &srv, std::
 		path = ".";
 		path += fullpath.substr(6);
 		if (access(path.c_str(), F_OK) != 0)
-			return "No file specified for deletion.";
+			return "Error 400";
 		if (access(path.c_str(), X_OK | W_OK) != 0)
 			return "Error 403";
 		if (remove(path.c_str()) != 0)
@@ -91,7 +91,7 @@ static std::string	deleteFile(const std::string buffer, const Server &srv, std::
 	size_t end = buffer.find_first_of("& \r\n", pos + 7);
 	std::string filename = buffer.substr(pos + 7, end - (pos + 7));
 	if (filename.empty())
-		return "No file specified for deletion.";
+		return "Error 400";
 	if (access(path.c_str(), X_OK | W_OK) != 0)
 		return "Error 403";
 	filename = path + filename;
